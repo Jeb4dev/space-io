@@ -1,48 +1,35 @@
 import Phaser from "phaser";
 
-type PickupRender = {
-  sprite: Phaser.GameObjects.Arc;
-  wx: number;
-  wy: number;
-  type: "xp" | "hp";
-};
+type PickupType = "xp" | "hp";
+type PickupSprite = Phaser.GameObjects.Arc;
 
 export default class Pickups {
-  private byId = new Map<string, PickupRender>();
-  private scene: Phaser.Scene;
+  private byId = new Map<string, PickupSprite>();
 
-  constructor(scene: Phaser.Scene) {
-    this.scene = scene;
-  }
+  constructor(private scene: Phaser.Scene) {}
 
-  // Upsert using WORLD coordinates from the server
-  upsert(id: string, wx: number, wy: number, type: "xp" | "hp") {
+  // Create sprite if missing (color by type)
+  ensure(id: string, type: PickupType) {
     const col = type === "xp" ? 0x6be46b : 0xff5b7b;
-    const existing = this.byId.get(id);
-    if (existing) {
-      existing.wx = wx;
-      existing.wy = wy;
-      existing.type = type;
-      (existing.sprite.fillColor as any) = col;
-      return;
+    let s = this.byId.get(id);
+    if (!s) {
+      s = this.scene.add.circle(0, 0, 8, col).setDepth(2);
+      this.byId.set(id, s);
+    } else {
+      (s.fillColor as any) = col;
     }
-    const sprite = this.scene.add.circle(0, 0, 8, col).setDepth(2);
-    this.byId.set(id, { sprite, wx, wy, type });
   }
 
-  render(cx: number, cy: number, youX: number, youY: number) {
-    for (const p of this.byId.values()) {
-      p.sprite.setPosition(
-        cx + (p.wx - youX),
-        cy + (p.wy - youY)
-      );
-    }
+  // Set screen-space position (computed in Scene from interpolated world coords)
+  place(id: string, sx: number, sy: number) {
+    const s = this.byId.get(id);
+    if (s) s.setPosition(sx, sy);
   }
 
   removeMissing(currentIds: Set<string>) {
-    for (const [id, p] of this.byId) {
+    for (const [id, s] of this.byId) {
       if (!currentIds.has(id)) {
-        p.sprite.destroy();
+        s.destroy();
         this.byId.delete(id);
       }
     }
