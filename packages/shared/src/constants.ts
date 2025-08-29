@@ -6,7 +6,7 @@ export const WORLD = { w: 4000, h: 3000, outOfBoundsClamp: 20 };
 export const PLAYER = {
   radius: 18,
   mass: 1,
-  baseAccel: 200, // px/s^2
+  baseAccel: 500, // px/s^2
   baseMaxSpeed: 200, // px/s
   baseHP: 100,
   invulnMs: 2000

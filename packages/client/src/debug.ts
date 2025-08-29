@@ -2,22 +2,24 @@ import type Phaser from "phaser";
 import { GRAVITY } from "@shared/constants";
 import type { WellState } from "@shared/types";
 
-/** Minimal context those debug drawers need (structurally matches your GameScene). */
+/** Minimal context those debug drawers need (structural typing matches GameScene). */
 export interface DebugCtx {
   wells: WellState[];
-  recon: { you?: { x: number; y: number } };
   worldW: number;
   worldH: number;
   debugWellsOn: boolean;
   wellGfx: Phaser.GameObjects.Graphics;
   boundsGfx: Phaser.GameObjects.Graphics;
   scale: { width: number; height: number };
+
+  /** Camera anchor in world space (use interpolated 'you' each frame). */
+  camX: number;
+  camY: number;
 }
 
-/** Draws the world bounds rectangle relative to the local player (camera at center). */
+/** Draw the world bounds rectangle relative to the camera anchor. */
 export function drawArenaBounds(ctx: DebugCtx): void {
-  const { recon, boundsGfx: g, scale, worldW, worldH } = ctx;
-  if (!recon.you) return;
+  const { boundsGfx: g, scale, worldW, worldH, camX, camY } = ctx;
 
   g.clear();
   g.lineStyle(2, 0x2d385a, 0.95);
@@ -25,8 +27,8 @@ export function drawArenaBounds(ctx: DebugCtx): void {
   const cx = scale.width / 2;
   const cy = scale.height / 2;
 
-  const sx = (wx: number) => cx + (wx - recon.you!.x);
-  const sy = (wy: number) => cy + (wy - recon.you!.y);
+  const sx = (wx: number) => cx + (wx - camX);
+  const sy = (wy: number) => cy + (wy - camY);
 
   const x0 = sx(0),        y0 = sy(0);
   const x1 = sx(worldW),   y1 = sy(0);
@@ -42,21 +44,21 @@ export function drawArenaBounds(ctx: DebugCtx): void {
   g.strokePath();
 }
 
-/** Visualize wells + net pull at the player position. Toggle via debugWellsOn. */
+/** Visualize wells + net pull at the camera anchor (player position). */
 export function drawGravityDebug(ctx: DebugCtx): void {
-  const { wellGfx: g, debugWellsOn, recon, wells, scale } = ctx;
+  const { wellGfx: g, debugWellsOn, wells, scale, camX, camY } = ctx;
   g.clear();
-  if (!debugWellsOn || !recon.you) return;
+  if (!debugWellsOn) return;
 
   const cx = scale.width / 2;
   const cy = scale.height / 2;
 
-  // Net acceleration at your position
+  // Net acceleration at the anchor
   let ax = 0, ay = 0;
 
   for (const w of wells) {
-    const sx = cx + (w.x - recon.you.x);
-    const sy = cy + (w.y - recon.you.y);
+    const sx = cx + (w.x - camX);
+    const sy = cy + (w.y - camY);
 
     const colCore =
       w.type === "planet" ? 0x4caf50 :
@@ -86,8 +88,8 @@ export function drawGravityDebug(ctx: DebugCtx): void {
     }
 
     // Net accel contribution if inside influence
-    const dx = w.x - recon.you.x;
-    const dy = w.y - recon.you.y;
+    const dx = w.x - camX;
+    const dy = w.y - camY;
     const d2 = dx * dx + dy * dy;
     if (d2 <= w.influenceRadius * w.influenceRadius) {
       const d = Math.sqrt(d2) || 1;

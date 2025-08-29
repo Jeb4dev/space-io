@@ -13,8 +13,10 @@ import Pickups from "@client/gameplay/Pickups";
 import Parallax from "@client/gameplay/Parallax";
 import { drawArenaBounds, drawGravityDebug } from "@client/debug";
 
-
 const SNAPSHOT_HZ = 12;
+const SELF_TINT = 0x8ac6ff;
+const OTHER_TINT = 0x4aa3ff;
+const SHIP_TEX_KEY = "ship_png"; // loaded from packages/assets/spaceship.png
 
 export default class GameScene extends Phaser.Scene {
   net = new Net();
@@ -41,247 +43,284 @@ export default class GameScene extends Phaser.Scene {
   // pickup interpolation (snapshot to snapshot)
   pickPrev = new Map<string, { x: number; y: number; type: "xp" | "hp" }>();
   pickCurr = new Map<string, { x: number; y: number; type: "xp" | "hp" }>();
-  pickAlpha = 1;
+pickAlpha = 1;
 
-  // input state
-  seq = 0;
-  lastInputAt = 0;
-  aim = 0;
-  thrust = { x: 0, y: 0 };
-  fireHeld = false;
+// input state
+seq = 0;
+lastInputAt = 0;
+aim = 0;
+thrust = { x: 0, y: 0 };
+fireHeld = false;
 
-  // new input model
-  space!: Phaser.Input.Keyboard.Key; // Spacebar to fire
-  alwaysThrust = false; // Desktop: always thrust toward pointer
-  isThrusting = false; // Mobile: thrust while touching
-  touchFireHeld = false; // Mobile FIRE button
+// camera anchor (interpolated you)
+camX = 0;
+camY = 0;
 
-  touchFireBtn!: HTMLDivElement;
+// input model
+space!: Phaser.Input.Keyboard.Key; // Spacebar to fire
+alwaysThrust = false; // Desktop: always thrust toward pointer
+isThrusting = false; // Mobile: thrust while touching
+touchFireHeld = false; // Mobile FIRE button
 
-  constructor() {
-    super("Game");
-  }
+touchFireBtn!: HTMLDivElement;
 
-  async create() {
-    (window as any).net = this.net;
-    this.cameras.main.setBackgroundColor("#05070b");
+constructor() {
+  super("Game");
+}
 
-    this.parallax = new Parallax(this);
-    this.bullets = new Projectiles(this);
-    this.pickups = new Pickups(this);
-    this.hud = new HUD();
-    this.levelModal = new LevelUpModal();
+preload() {
+  // Load PNG from monorepo path: packages/assets/spaceship.png
+  // (three ../ from this file: client/src/scenes -> client -> packages -> assets)
+  const shipUrl = new URL("../../../assets/spaceship.png", import.meta.url).toString();
+  this.load.image(SHIP_TEX_KEY, shipUrl);
+}
 
-    this.wellGfx = this.add.graphics().setDepth(8);
-    this.boundsGfx = this.add.graphics().setDepth(7); // below gravity overlay, above stars
-    this.input.keyboard?.on("keydown-F3", () => {
-      this.debugWellsOn = !this.debugWellsOn;
-      this.wellGfx.clear();
-    });
+async create() {
+  (window as any).net = this.net;
+  this.cameras.main.setBackgroundColor("#05070b");
 
-    // Touch FIRE button (mobile)
-    this.touchFireBtn = document.createElement("div");
-    this.touchFireBtn.className = "touch-fire";
-    this.touchFireBtn.innerText = "FIRE";
-    document.body.appendChild(this.touchFireBtn);
-    this.touchFireBtn.onpointerdown = () => (this.touchFireHeld = true);
-    this.touchFireBtn.onpointerup = () => (this.touchFireHeld = false);
-    this.touchFireBtn.onpointercancel = () => (this.touchFireHeld = false);
+  this.parallax = new Parallax(this);
+  this.bullets = new Projectiles(this);
+  this.pickups = new Pickups(this);
+  this.hud = new HUD();
+  this.levelModal = new LevelUpModal();
 
-    // Input mode: desktop vs mobile
-    const isDesktop = this.sys.game.device.os.desktop;
-    this.alwaysThrust = isDesktop;
+  this.wellGfx = this.add.graphics().setDepth(8);
+  this.boundsGfx = this.add.graphics().setDepth(7); // below gravity overlay, above stars
+  this.input.keyboard?.on("keydown-F3", () => {
+    this.debugWellsOn = !this.debugWellsOn;
+    this.wellGfx.clear();
+  });
 
-    // Spacebar fires
-    this.space = this.input.keyboard?.addKey(
-      Phaser.Input.Keyboard.KeyCodes.SPACE
-    ) as Phaser.Input.Keyboard.Key;
+  // Touch FIRE button (mobile)
+  this.touchFireBtn = document.createElement("div");
+  this.touchFireBtn.className = "touch-fire";
+  this.touchFireBtn.innerText = "FIRE";
+  document.body.appendChild(this.touchFireBtn);
+  this.touchFireBtn.onpointerdown = () => (this.touchFireHeld = true);
+  this.touchFireBtn.onpointerup = () => (this.touchFireHeld = false);
+  this.touchFireBtn.onpointercancel = () => (this.touchFireHeld = false);
 
-    // Mobile thrust: hold touch to thrust; release to stop
-    this.input.on("pointerdown", () => {
-      if (!isDesktop) this.isThrusting = true;
-    });
-    this.input.on("pointerup", () => {
-      if (!isDesktop) {
-        this.isThrusting = false;
-        this.thrust = { x: 0, y: 0 };
-      }
-    });
-    // We compute aim/thrust every frame in update() now.
+  // Input mode: desktop vs mobile
+  const isDesktop = this.sys.game.device.os.desktop;
+  this.alwaysThrust = isDesktop;
 
-    // Ask for player name
-    const prompt = new NamePrompt();
-    const name = await prompt.getName();
+  // Spacebar fires
+  this.space = this.input.keyboard?.addKey(
+    Phaser.Input.Keyboard.KeyCodes.SPACE
+  ) as Phaser.Input.Keyboard.Key;
 
-    // Start connecting (resolves on 'welcome'), register handlers, then join, then await welcome
-    const connectP = this.net.connect(
-      import.meta.env.VITE_SERVER_URL || "http://localhost:8080"
-    );
-
-    this.net.onEvent(async (e) => {
-      if (e.type === "LevelUpOffer") {
-        const choice = await this.levelModal.choose(e.choices);
-        this.net.choosePowerup(choice);
-      }
-    });
-    this.net.onSnapshot((s) => this.onSnapshot(s));
-
-    this.net.join(name);
-    const welcome = await connectP;
-    this.worldW = welcome.world.w;
-    this.worldH = welcome.world.h;
-
-    // Ensure your ship exists immediately (in case no snapshot yet)
-    const youId = this.net.youId!;
-    if (!this.ships.has(youId)) {
-      const ship = new Ship(this, 0x8ac6ff);
-      ship.sprite.setDepth(1000);
-      ship.ring.setDepth(1001);
-      this.ships.set(youId, ship);
-    }
-  }
-
-  onSnapshot(s: ServerSnapshot) {
-    this.interp.push(s.entities);
-    this.wells = s.wells;
-
-    const you = s.entities.find((e) => e.id === (this.net.youId || s.youId));
-    if (!you) return;
-
-    if (!this.ships.has(you.id)) this.ships.set(you.id, new Ship(this, 0x8ac6ff));
-    this.recon.setYouState(you);
-
-    // HUD
-    this.hud.setScoreboard(s.scoreboard);
-    if (you.maxHp) this.hud.setHP(you.hp ?? 0, you.maxHp);
-
-    // Bullets: ensure sprites now (placement each frame from interpolated entities)
-    const bulletIds = new Set<string>();
-    for (const e of s.entities) {
-      if (e.kind === "bullet") {
-        this.bullets.ensure(e.id, e.r);
-        bulletIds.add(e.id);
-      }
-    }
-    this.bullets.removeMissing(bulletIds);
-
-    // Pickups: store prev/curr for interpolation; ensure sprites
-    this.pickPrev = this.pickCurr;
-    this.pickCurr = new Map(
-      s.pickups.map((p) => [p.id, { x: p.x, y: p.y, type: p.type }])
-    );
-    this.pickAlpha = 0;
-
-    const pickupIds = new Set<string>();
-    for (const [id, p] of this.pickCurr) {
-      this.pickups.ensure(id, p.type);
-      pickupIds.add(id);
-    }
-    this.pickups.removeMissing(pickupIds);
-
-    // Ensure all player sprites exist; clean up missing
-    for (const e of s.entities) {
-      if (e.kind !== "player") continue;
-      if (!this.ships.has(e.id))
-        this.ships.set(e.id, new Ship(this, e.id === you.id ? 0x8ac6ff : 0x4aa3ff));
-    }
-    const ids = new Set(
-      s.entities.filter((e) => e.kind === "player").map((e) => e.id)
-    );
-    for (const [id, ship] of this.ships) {
-      if (!ids.has(id)) {
-        ship.destroy();
-        this.ships.delete(id);
-      }
-    }
-  }
-
-  update(_time: number, delta: number) {
-    const cx = this.scale.width / 2;
-    const cy = this.scale.height / 2;
-
-    // Compute aim toward current pointer each frame (camera fixed at center)
-    const pointer = this.input.activePointer;
-    this.aim = Math.atan2(pointer.worldY - cy, pointer.worldX - cx);
-
-    // Thrust rule: Desktop = always toward pointer; Mobile = only while touching
-    if (this.alwaysThrust || this.isThrusting) {
-      this.thrust = { x: Math.cos(this.aim), y: Math.sin(this.aim) };
-    } else {
+  // Mobile thrust: hold touch to thrust; release to stop
+  this.input.on("pointerdown", () => {
+    if (!isDesktop) this.isThrusting = true;
+  });
+  this.input.on("pointerup", () => {
+    if (!isDesktop) {
+      this.isThrusting = false;
       this.thrust = { x: 0, y: 0 };
     }
+  });
+  // We compute aim/thrust every frame in update() now.
 
-    // Fire: Spacebar or mobile FIRE button
-    const spaceDown = this.space?.isDown ?? false;
-    this.fireHeld = spaceDown || this.touchFireHeld;
+  // Ask for player name
+  const prompt = new NamePrompt();
+  const name = await prompt.getName();
 
-    // Send input at ~40 Hz
-    const dtMs = delta;
-    const now = performance.now();
-    if (now - this.lastInputAt > 1000 / 40 && this.net.youId) {
-      const payload = {
-        id: this.net.youId!,
-        seq: ++this.seq,
-        aim: this.aim,
-        thrust: this.thrust,
-        fire: this.fireHeld,
-        dtMs,
-      } as const;
-      this.net.sendInput(payload as any);
-      this.recon.record(payload as any);
-      this.lastInputAt = now;
+  // Start connecting (resolves on 'welcome'), register handlers, then join, then await welcome
+  const connectP = this.net.connect(
+    import.meta.env.VITE_SERVER_URL || "http://localhost:8080"
+  );
+
+  this.net.onEvent(async (e) => {
+    if (e.type === "LevelUpOffer") {
+      const choice = await this.levelModal.choose(e.choices);
+      this.net.choosePowerup(choice);
     }
+  });
+  this.net.onSnapshot((s) => this.onSnapshot(s));
 
-    // Interpolated "you" for smooth rendering/camera base
-    const youI =
-      this.interp.get(this.net.youId || "") ??
-      this.interp.current.get(this.net.youId || "");
+  this.net.join(name);
+  const welcome = await connectP;
+  this.worldW = welcome.world.w;
+  this.worldH = welcome.world.h;
 
-    if (youI) {
-      // Other players relative to interpolated you
-      for (const id of this.interp.ids()) {
-        const e = this.interp.get(id)!;
-        const ship = this.ships.get(id);
-        if (e.kind === "player" && ship && id !== this.net.youId) {
-          ship.setPosition(cx + (e.x - youI.x), cy + (e.y - youI.y));
-        }
-      }
-
-      // Your ship stays centered
-      const myShip = this.ships.get(this.net.youId!);
-      if (myShip) myShip.setPosition(cx, cy);
-
-      // Parallax + HUD from interpolated you
-      this.parallax.update(youI.vx, youI.vy);
-      if (youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
-    }
-
-    // Bullets: place via interpolated entities
-    if (youI) {
-      for (const id of this.interp.ids()) {
-        const e = this.interp.get(id)!;
-        if (e.kind === "bullet") {
-          this.bullets.place(id, cx + (e.x - youI.x), cy + (e.y - youI.y));
-        }
-      }
-    }
-
-    // Pickups: interpolate between snapshots
-    this.pickAlpha = Math.min(1, this.pickAlpha + delta / (1000 / SNAPSHOT_HZ));
-    if (youI) {
-      for (const [id, cur] of this.pickCurr) {
-        const prev = this.pickPrev.get(id) || cur;
-        const x = prev.x + (cur.x - prev.x) * this.pickAlpha;
-        const y = prev.y + (cur.y - prev.y) * this.pickAlpha;
-        this.pickups.place(id, cx + (x - youI.x), cy + (y - youI.y));
-      }
-    }
-
-    // Advance entity interpolation
-    this.interp.step(delta / 1000, 1000 / SNAPSHOT_HZ);
-
-    // Draw arena and gravity overlay
-    drawArenaBounds(this);
-    drawGravityDebug(this);
+  // Ensure your ship exists immediately (in case no snapshot yet)
+  const youId = this.net.youId!;
+  if (!this.ships.has(youId)) {
+    const ship = new Ship(this, SHIP_TEX_KEY, { scale: 1, ringRadius: 18, showNose: true });
+    ship.sprite.setDepth(1000);
+    ship.ring.setDepth(1001);
+    ship.setTint(SELF_TINT); // remove this if your PNG is already colored as desired
+    this.ships.set(youId, ship);
   }
+}
+
+onSnapshot(s: ServerSnapshot) {
+  this.interp.push(s.entities);
+  this.wells = s.wells;
+
+  const you = s.entities.find((e) => e.id === (this.net.youId || s.youId));
+  if (!you) return;
+
+  if (!this.ships.has(you.id)) {
+    const me = new Ship(this, SHIP_TEX_KEY, { scale: 1, ringRadius: 18, showNose: true });
+    me.setTint(SELF_TINT);
+    this.ships.set(you.id, me);
+  }
+  this.recon.setYouState(you);
+
+  // HUD
+  this.hud.setScoreboard(s.scoreboard);
+  if (you.maxHp) this.hud.setHP(you.hp ?? 0, you.maxHp);
+
+  // Bullets: ensure sprites now (placement each frame from interpolated entities)
+  const bulletIds = new Set<string>();
+  for (const e of s.entities) {
+    if (e.kind === "bullet") {
+      this.bullets.ensure(e.id, e.r);
+      bulletIds.add(e.id);
+    }
+  }
+  this.bullets.removeMissing(bulletIds);
+
+  // Pickups: store prev/curr for interpolation; ensure sprites
+  this.pickPrev = this.pickCurr;
+  this.pickCurr = new Map(
+    s.pickups.map((p) => [p.id, { x: p.x, y: p.y, type: p.type }])
+  );
+  this.pickAlpha = 0;
+
+  const pickupIds = new Set<string>();
+  for (const [id, p] of this.pickCurr) {
+    this.pickups.ensure(id, p.type);
+    pickupIds.add(id);
+  }
+  this.pickups.removeMissing(pickupIds);
+
+  // Ensure all player sprites exist; tint others; clean up missing
+  for (const e of s.entities) {
+    if (e.kind !== "player") continue;
+    if (!this.ships.has(e.id)) {
+      const ship = new Ship(this, SHIP_TEX_KEY, { scale: 1, ringRadius: 18, showNose: true });
+      ship.setTint(e.id === you.id ? SELF_TINT : OTHER_TINT);
+      this.ships.set(e.id, ship);
+    }
+  }
+  const ids = new Set(
+    s.entities.filter((e) => e.kind === "player").map((e) => e.id)
+  );
+  for (const [id, ship] of this.ships) {
+    if (!ids.has(id)) {
+      ship.destroy();
+      this.ships.delete(id);
+    }
+  }
+}
+
+update(_time: number, delta: number) {
+  const cx = this.scale.width / 2;
+  const cy = this.scale.height / 2;
+
+  // Compute aim toward current pointer each frame (camera fixed at center)
+  const pointer = this.input.activePointer;
+  this.aim = Math.atan2(pointer.worldY - cy, pointer.worldX - cx);
+
+  // Thrust rule: Desktop = always toward pointer; Mobile = only while touching
+  if (this.alwaysThrust || this.isThrusting) {
+    this.thrust = { x: Math.cos(this.aim), y: Math.sin(this.aim) };
+  } else {
+    this.thrust = { x: 0, y: 0 };
+  }
+
+  // Fire: Spacebar or mobile FIRE button
+  const spaceDown = this.space?.isDown ?? false;
+  this.fireHeld = spaceDown || this.touchFireHeld;
+
+  // Send input at ~40 Hz
+  const dtMs = delta;
+  const now = performance.now();
+  if (now - this.lastInputAt > 1000 / 40 && this.net.youId) {
+    const payload = {
+      id: this.net.youId!,
+      seq: ++this.seq,
+      aim: this.aim,
+      thrust: this.thrust,
+      fire: this.fireHeld,
+      dtMs,
+    } as const;
+    this.net.sendInput(payload as any);
+    this.recon.record(payload as any);
+    this.lastInputAt = now;
+  }
+
+  // Interpolated "you" for smooth rendering/camera base
+  const youI =
+    this.interp.get(this.net.youId || "") ??
+    this.interp.current.get(this.net.youId || "");
+
+  if (youI) {
+    // Other players relative to interpolated you
+    for (const id of this.interp.ids()) {
+      const e = this.interp.get(id)!;
+      if (e.kind !== "player" || id === this.net.youId) continue;
+
+      const ship = this.ships.get(id);
+      if (!ship) continue;
+
+      ship.setPosition(cx + (e.x - youI.x), cy + (e.y - youI.y));
+
+      // Face their movement direction (guard tiny velocities)
+      const spd = Math.hypot(e.vx, e.vy);
+      if (spd > 0.001) ship.setRotation(Math.atan2(e.vy, e.vx));
+    }
+
+    // Your ship stays centered and faces aim
+    const myShip = this.ships.get(this.net.youId!);
+    if (myShip) {
+      myShip.setPosition(cx, cy);
+      myShip.setRotation(this.aim);
+    }
+
+    // Parallax + HUD from interpolated you (dt for framerate independence)
+    this.parallax.update(youI.vx, youI.vy, delta);
+    if (youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
+  }
+
+  // Bullets: place via interpolated entities
+  if (youI) {
+    for (const id of this.interp.ids()) {
+      const e = this.interp.get(id)!;
+      if (e.kind === "bullet") {
+        this.bullets.place(id, cx + (e.x - youI.x), cy + (e.y - youI.y));
+      }
+    }
+  }
+
+  // Pickups: interpolate between snapshots
+  this.pickAlpha = Math.min(1, this.pickAlpha + delta / (1000 / SNAPSHOT_HZ));
+  if (youI) {
+    for (const [id, cur] of this.pickCurr) {
+      const prev = this.pickPrev.get(id) || cur;
+      const x = prev.x + (cur.x - prev.x) * this.pickAlpha;
+      const y = prev.y + (cur.y - prev.y) * this.pickAlpha;
+      this.pickups.place(id, cx + (x - youI.x), cy + (y - youI.y));
+    }
+  }
+
+  // Camera anchor for debug drawers
+  if (youI) {
+    this.camX = youI.x;
+    this.camY = youI.y;
+  } else if (this.recon.you) {
+    this.camX = this.recon.you.x;
+    this.camY = this.recon.you.y;
+  }
+
+  // Advance entity interpolation
+  this.interp.step(delta / 1000, 1000 / SNAPSHOT_HZ);
+
+  // Draw arena and gravity overlay (use camX/camY)
+  drawArenaBounds(this);
+  drawGravityDebug(this);
+}
 }
