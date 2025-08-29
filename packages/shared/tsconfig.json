@@ -15,7 +15,8 @@
     "baseUrl": "./",
     "paths": {
       "@shared/*": ["src/*"]
-    }
+    },
+    "composite": true
   },
   "include": ["src"]
 }
