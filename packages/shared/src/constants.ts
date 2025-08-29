@@ -42,12 +42,12 @@ export const PICKUPS = {
 };
 
 export const GRAVITY = {
-  G: 260000, // tuned for game feel
+  G: 160000, // tuned for game feel
   epsilon: 1600, // avoids singularities
-  maxPull: 1800,
+  maxPull: 1500,
   wells: [
     // seeded world layout
-    { id: "planetA", x: 800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400 },
+    { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400 },
     { id: "sunA", x: 3000, y: 700, mass: 4e6, radius: 160, influenceRadius: 800, type: "sun" as const, maxPull: 2000 },
     { id: "holeA", x: 2100, y: 2300, mass: 6e6, radius: 110, influenceRadius: 950, type: "blackhole" as const, maxPull: 2600 }
   ],

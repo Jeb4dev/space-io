@@ -15,14 +15,11 @@ export class Recon {
   }
 
   reconcile(serverYou: EntityState) {
-    // snap to server then replay
+    // Jam-stable: snap to authoritative server state.
     this.you = { ...serverYou };
-    // Inputs already acked on server are accounted by ack seq; trim guessed list
-    this.unacked = this.unacked.filter((i) => i.seq > (window as any).net.lastAckSeq);
-    for (const i of this.unacked) {
-      this.you.x += i.thrust.x * 0.02 * 30; // approximate
-      this.you.y += i.thrust.y * 0.02 * 30;
-    }
+    // Keep only inputs the server hasn't acked (for potential future use)
+    this.unacked = this.unacked.filter(
+      (i) => i.seq > (window as any).net.lastAckSeq
+    );
   }
 }
-
