@@ -1,6 +1,7 @@
 # Powerups
 
 Families (each has 5 tiers):
+
 - Hull (+Max HP per tier)
 - Blaster Damage (+damage)
 - Engine (+speed/accel)
@@ -9,6 +10,7 @@ Families (each has 5 tiers):
 - Shield (+regen or charges)
 
 Alt-fire (Level 10 unlock):
+
 - Railgun: high damage, pierces, long cooldown
 - Spread: triple shot fan, lower range
 

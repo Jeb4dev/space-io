@@ -6,7 +6,12 @@ import { clamp, dist2, rndRange } from "@shared/math.js";
 import { ioSnapshot } from "./loop.js";
 import type { PowerupChoice, PowerupFamily } from "@shared/types.js";
 
-export const addPlayer = (world: World, id: string, pos: { x: number; y: number }, socketId: string): Player => {
+export const addPlayer = (
+  world: World,
+  id: string,
+  pos: { x: number; y: number },
+  socketId: string,
+): Player => {
   const p: Player = {
     id,
     socketId,
@@ -33,7 +38,7 @@ export const addPlayer = (world: World, id: string, pos: { x: number; y: number 
     inputQueue: [],
     lastAckSeq: 0,
     score: 0,
-    mass: 0
+    mass: 0,
   };
   world.players.set(id, p);
   return p;
@@ -51,7 +56,13 @@ export const setPlayerName = (world: World, id: string, name: string) => {
 export const queueInput = (
   world: World,
   id: string,
-  frame: { seq: number; aim: number; thrust: { x: number; y: number }; fire: boolean; dtMs: number }
+  frame: {
+    seq: number;
+    aim: number;
+    thrust: { x: number; y: number };
+    fire: boolean;
+    dtMs: number;
+  },
 ) => {
   const p = world.players.get(id);
   if (!p) return;
@@ -63,10 +74,10 @@ export const processInputs = (world: World, now: number) => {
     while (p.inputQueue.length) {
       const f = p.inputQueue.shift()!;
       // thrust towards pointer direction scaled by accel
-  // Make movement more floaty: reduce acceleration
-  const floatyAccel = p.accel * 0.6;
-  p.vx += clamp(f.thrust.x, -1, 1) * floatyAccel * (f.dtMs / 1000);
-  p.vy += clamp(f.thrust.y, -1, 1) * floatyAccel * (f.dtMs / 1000);
+      // Make movement more floaty: reduce acceleration
+      const floatyAccel = p.accel * 0.6;
+      p.vx += clamp(f.thrust.x, -1, 1) * floatyAccel * (f.dtMs / 1000);
+      p.vy += clamp(f.thrust.y, -1, 1) * floatyAccel * (f.dtMs / 1000);
       const spd = Math.hypot(p.vx, p.vy);
       if (spd > p.maxSpeed) {
         const s = p.maxSpeed / (spd || 1);
@@ -135,21 +146,51 @@ export const applyLevelChoice = (world: World, id: string, choice: PowerupChoice
       fireCooldownMs: p.fireCooldownMs,
       magnetRadius: p.magnetRadius,
       shield: p.shield,
-      altFire: p.altFire
-    }
+      altFire: p.altFire,
+    },
   });
 };
 
 const rollChoices = (p: Player): PowerupChoice[] => {
   const arr: PowerupChoice[] = [];
-  const families = [...(Array.from({ length: POWERUPS.tiers }).keys())].map((i) => i + 1);
+  const families = [...Array.from({ length: POWERUPS.tiers }).keys()].map((i) => i + 1);
   const pool: PowerupChoice[] = [
-    ...families.map((tier) => ({ family: "Hull" as const, tier, label: `Hull T${tier}`, desc: "+20 Max HP" })),
-    ...families.map((tier) => ({ family: "Damage" as const, tier, label: `Damage T${tier}`, desc: "+4 Damage" })),
-    ...families.map((tier) => ({ family: "Engine" as const, tier, label: `Engine T${tier}`, desc: "+Speed/Accel" })),
-    ...families.map((tier) => ({ family: "FireRate" as const, tier, label: `Fire Rate T${tier}`, desc: "-Cooldown" })),
-    ...families.map((tier) => ({ family: "Magnet" as const, tier, label: `Magnet T${tier}`, desc: "+Pickup Radius" })),
-    ...families.map((tier) => ({ family: "Shield" as const, tier, label: `Shield T${tier}`, desc: "+Shield/HP" }))
+    ...families.map((tier) => ({
+      family: "Hull" as const,
+      tier,
+      label: `Hull T${tier}`,
+      desc: "+20 Max HP",
+    })),
+    ...families.map((tier) => ({
+      family: "Damage" as const,
+      tier,
+      label: `Damage T${tier}`,
+      desc: "+4 Damage",
+    })),
+    ...families.map((tier) => ({
+      family: "Engine" as const,
+      tier,
+      label: `Engine T${tier}`,
+      desc: "+Speed/Accel",
+    })),
+    ...families.map((tier) => ({
+      family: "FireRate" as const,
+      tier,
+      label: `Fire Rate T${tier}`,
+      desc: "-Cooldown",
+    })),
+    ...families.map((tier) => ({
+      family: "Magnet" as const,
+      tier,
+      label: `Magnet T${tier}`,
+      desc: "+Pickup Radius",
+    })),
+    ...families.map((tier) => ({
+      family: "Shield" as const,
+      tier,
+      label: `Shield T${tier}`,
+      desc: "+Shield/HP",
+    })),
   ];
   while (arr.length < 3) {
     // weight: prefer non-repeated families lightly
@@ -159,7 +200,12 @@ const rollChoices = (p: Player): PowerupChoice[] => {
   if (p.level >= 10 && !p.altFire) {
     // replace one with alt-fire choice
     const idx = Math.floor(Math.random() * 3);
-    arr[idx] = { family: "AltFire" as const, alt: Math.random() < 0.5 ? "railgun" : "spread", label: "Alt Fire", desc: "Unlock special weapon" };
+    arr[idx] = {
+      family: "AltFire" as const,
+      alt: Math.random() < 0.5 ? "railgun" : "spread",
+      label: "Alt Fire",
+      desc: "Unlock special weapon",
+    };
   }
   return arr;
 };
@@ -170,11 +216,18 @@ export const tryFire = (world: World, p: Player, aim: number, now: number) => {
   const cos = Math.cos(aim);
   const sin = Math.sin(aim);
 
-  const fireBullet = (speed: number, damage: number, radius: number, ttl: number, angleOffset = 0, pierce = false) => {
+  const fireBullet = (
+    speed: number,
+    damage: number,
+    radius: number,
+    ttl: number,
+    angleOffset = 0,
+    pierce = false,
+  ) => {
     const id = nanoid();
     const vx = Math.cos(aim + angleOffset) * speed;
     const vy = Math.sin(aim + angleOffset) * speed;
-    const muzzleDist = p.r + radius -50; // spawn at ship nose
+    const muzzleDist = p.r + radius - 50; // spawn at ship nose
     const b: Bullet = {
       id,
       ownerId: p.id,
@@ -185,13 +238,20 @@ export const tryFire = (world: World, p: Player, aim: number, now: number) => {
       r: radius,
       damage,
       ttl,
-      pierce
+      pierce,
     };
     world.bullets.set(id, b);
   };
 
   if (p.altFire === "railgun") {
-    fireBullet(ALT_FIRE.railgun.speed, ALT_FIRE.railgun.damage, ALT_FIRE.railgun.radius, ALT_FIRE.railgun.lifetimeMs, 0, true);
+    fireBullet(
+      ALT_FIRE.railgun.speed,
+      ALT_FIRE.railgun.damage,
+      ALT_FIRE.railgun.radius,
+      ALT_FIRE.railgun.lifetimeMs,
+      0,
+      true,
+    );
     p.lastFireAt = now - 0 + ALT_FIRE.railgun.cooldownMs;
     return;
   }
@@ -200,7 +260,14 @@ export const tryFire = (world: World, p: Player, aim: number, now: number) => {
     const base = -s;
     for (let i = 0; i < ALT_FIRE.spread.pellets; i++) {
       const off = base + (s * i * 2) / (ALT_FIRE.spread.pellets - 1);
-      fireBullet(ALT_FIRE.spread.speed, ALT_FIRE.spread.damage, ALT_FIRE.spread.radius, ALT_FIRE.spread.lifetimeMs, off, false);
+      fireBullet(
+        ALT_FIRE.spread.speed,
+        ALT_FIRE.spread.damage,
+        ALT_FIRE.spread.radius,
+        ALT_FIRE.spread.lifetimeMs,
+        off,
+        false,
+      );
     }
     p.lastFireAt = now - 0 + ALT_FIRE.spread.cooldownMs;
     return;
@@ -218,15 +285,27 @@ export const moveAndClamp = (p: Player, dt: number) => {
   p.vy *= damping;
   p.x += p.vx * dt;
   p.y += p.vy * dt;
-  if (p.x < 0 + p.r) { p.x = p.r; p.vx = 0; }
-  if (p.y < 0 + p.r) { p.y = p.r; p.vy = 0; }
-  if (p.x > WORLD.w - p.r) { p.x = WORLD.w - p.r; p.vx = 0; }
-  if (p.y > WORLD.h - p.r) { p.y = WORLD.h - p.r; p.vy = 0; }
+  if (p.x < 0 + p.r) {
+    p.x = p.r;
+    p.vx = 0;
+  }
+  if (p.y < 0 + p.r) {
+    p.y = p.r;
+    p.vy = 0;
+  }
+  if (p.x > WORLD.w - p.r) {
+    p.x = WORLD.w - p.r;
+    p.vx = 0;
+  }
+  if (p.y > WORLD.h - p.r) {
+    p.y = WORLD.h - p.r;
+    p.vy = 0;
+  }
 };
 
 export const spawnPickupsIfNeeded = (world: World) => {
   // Add a timer property to world if not present
-  if (!('pickupSpawnTimer' in world)) {
+  if (!("pickupSpawnTimer" in world)) {
     (world as any).pickupSpawnTimer = 0;
   }
   (world as any).pickupSpawnTimer += 1 / TICK_HZ;
@@ -235,8 +314,18 @@ export const spawnPickupsIfNeeded = (world: World) => {
     (world as any).pickupSpawnTimer = 0;
     const id = nanoid();
     const type = Math.random() < PICKUPS.hpOrbChance ? "hp" : "xp";
-  const value = type === "hp" ? PICKUPS.hpOrbValue : Math.floor(rndRange(PICKUPS.xpValueRange[0], PICKUPS.xpValueRange[1]));
-    const p: Pickup = { id, type, x: rndRange(40, WORLD.w - 40), y: rndRange(40, WORLD.h - 40), r: 10, value };
+    const value =
+      type === "hp"
+        ? PICKUPS.hpOrbValue
+        : Math.floor(rndRange(PICKUPS.xpValueRange[0], PICKUPS.xpValueRange[1]));
+    const p: Pickup = {
+      id,
+      type,
+      x: rndRange(40, WORLD.w - 40),
+      y: rndRange(40, WORLD.h - 40),
+      r: 10,
+      value,
+    };
     world.pickups.set(id, p);
   }
 };
@@ -262,7 +351,13 @@ export const collectPickups = (world: World) => {
         if (pu.type === "xp") giveXP(world, p, pu.value);
         else p.hp = Math.min(p.maxHp + p.shield, p.hp + pu.value);
         const sock = world.io?.sockets.sockets.get(p.socketId);
-        sock?.emit("event", { type: "Pickup", playerId: p.id, pickupId: pu.id, value: pu.value, kind: pu.type });
+        sock?.emit("event", {
+          type: "Pickup",
+          playerId: p.id,
+          pickupId: pu.id,
+          value: pu.value,
+          kind: pu.type,
+        });
       }
     }
   }

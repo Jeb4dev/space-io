@@ -18,8 +18,6 @@ export class Recon {
     // Jam-stable: snap to authoritative server state.
     this.you = { ...serverYou };
     // Keep only inputs the server hasn't acked (for potential future use)
-    this.unacked = this.unacked.filter(
-      (i) => i.seq > (window as any).net.lastAckSeq
-    );
+    this.unacked = this.unacked.filter((i) => i.seq > (window as any).net.lastAckSeq);
   }
 }

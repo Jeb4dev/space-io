@@ -1,8 +1,19 @@
 import { Server, Socket } from "socket.io";
 import { nanoid } from "nanoid";
-import { ClientInputSchema, ClientJoinSchema, LevelChoiceSchema, ServerWelcome } from "@shared/messages.js";
+import {
+  ClientInputSchema,
+  ClientJoinSchema,
+  LevelChoiceSchema,
+  ServerWelcome,
+} from "@shared/messages.js";
 import type { World } from "../sim/world.js";
-import { addPlayer, removePlayer, setPlayerName, queueInput, applyLevelChoice } from "../sim/entities.js";
+import {
+  addPlayer,
+  removePlayer,
+  setPlayerName,
+  queueInput,
+  applyLevelChoice,
+} from "../sim/entities.js";
 import { config } from "../config.js";
 import { WORLD } from "@shared/constants.js";
 import { filterName } from "../util/nameFilter.js";
@@ -14,7 +25,12 @@ export const setupSocket = (io: Server, world: World) => {
       return;
     }
     const playerId = nanoid();
-    const player = addPlayer(world, playerId, { x: WORLD.w * 0.1 + Math.random() * 100, y: WORLD.h * 0.5 }, socket.id);
+    const player = addPlayer(
+      world,
+      playerId,
+      { x: WORLD.w * 0.1 + Math.random() * 100, y: WORLD.h * 0.5 },
+      socket.id,
+    );
 
     socket.on("join", (raw) => {
       const parsed = ClientJoinSchema.safeParse(raw);
@@ -25,7 +41,7 @@ export const setupSocket = (io: Server, world: World) => {
         youId: playerId,
         tickRate: config.tickHz,
         snapshotRate: config.snapshotHz,
-        world: { w: WORLD.w, h: WORLD.h }
+        world: { w: WORLD.w, h: WORLD.h },
       };
       socket.emit("welcome", welcome);
     });

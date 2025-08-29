@@ -38,7 +38,13 @@ export type Player = {
   pendingOffer?: boolean;
   invulnUntil: number;
   altFire?: "railgun" | "spread";
-  inputQueue: Array<{ seq: number; aim: number; thrust: { x: number; y: number }; fire: boolean; dtMs: number }>;
+  inputQueue: Array<{
+    seq: number;
+    aim: number;
+    thrust: { x: number; y: number };
+    fire: boolean;
+    dtMs: number;
+  }>;
   lastAckSeq: number;
   deadUntil?: number;
   score: number;
@@ -69,7 +75,7 @@ export type Pickup = {
 
 export const createWorld = (): World => {
   // Initialize wells from GRAVITY.wells, handling empty array case
-  const wells: WellState[] = GRAVITY.wells.map(w => ({ ...w }));
+  const wells: WellState[] = GRAVITY.wells.map((w) => ({ ...w }));
   return {
     w: WORLD.w,
     h: WORLD.h,
@@ -77,7 +83,7 @@ export const createWorld = (): World => {
     wells,
     players: new Map(),
     bullets: new Map(),
-    pickups: new Map()
+    pickups: new Map(),
   };
 };
 

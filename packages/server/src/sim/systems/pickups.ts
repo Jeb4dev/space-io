@@ -5,4 +5,3 @@ export const updatePickups = (world: World) => {
   spawnPickupsIfNeeded(world);
   collectPickups(world);
 };
-

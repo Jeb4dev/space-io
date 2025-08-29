@@ -49,9 +49,15 @@ export const ioSnapshot = (io: Server, world: World) => {
     acks: undefined as unknown as { seq: number }, // per-player fill
     youId: "", // per-player fill
     entities: [] as any[],
-    pickups: Array.from(world.pickups.values()).map((p) => ({ id: p.id, type: p.type, x: p.x, y: p.y, value: p.value })),
+    pickups: Array.from(world.pickups.values()).map((p) => ({
+      id: p.id,
+      type: p.type,
+      x: p.x,
+      y: p.y,
+      value: p.value,
+    })),
     wells: world.wells.map((w) => ({ ...w })),
-    scoreboard: getScoreboard(world)
+    scoreboard: getScoreboard(world),
   };
 
   for (const p of world.players.values()) {
@@ -65,7 +71,7 @@ export const ioSnapshot = (io: Server, world: World) => {
         vy: op.vy,
         r: op.r,
         hp: op.hp,
-        maxHp: op.maxHp
+        maxHp: op.maxHp,
       })),
       ...Array.from(world.bullets.values()).map((b) => ({
         id: b.id,
@@ -75,8 +81,8 @@ export const ioSnapshot = (io: Server, world: World) => {
         vx: b.vx,
         vy: b.vy,
         r: b.r,
-        ownerId: b.ownerId
-      }))
+        ownerId: b.ownerId,
+      })),
     ];
     const sock = io.sockets.sockets.get(p.socketId);
     if (!sock) continue;
@@ -84,8 +90,7 @@ export const ioSnapshot = (io: Server, world: World) => {
       ...snapshot,
       youId: p.id,
       entities: ents,
-      acks: { seq: p.lastAckSeq }
+      acks: { seq: p.lastAckSeq },
     });
   }
 };
-

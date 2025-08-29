@@ -6,4 +6,3 @@ export const getScoreboard = (world: World) =>
     .sort((a, b) => b.score - a.score)
     .slice(0, SCOREBOARD.top)
     .map((p) => ({ id: p.id, name: p.name, score: p.score, level: p.level }));
-

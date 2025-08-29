@@ -19,15 +19,15 @@ export default class Parallax {
 
   constructor(
     scene: Phaser.Scene,
-    opts: { farFactor?: number; nearFactor?: number; smoothing?: number } = {}
+    opts: { farFactor?: number; nearFactor?: number; smoothing?: number } = {},
   ) {
     // Defaults: very gentle drift. Near just a touch faster than far.
     this.farFactor = opts.farFactor ?? 0.06;
-    this.nearFactor = opts.nearFactor ?? 0.10;
+    this.nearFactor = opts.nearFactor ?? 0.1;
     this.smoothing = opts.smoothing ?? 0.85;
 
     // Generate textures once
-    createStarTexture(scene, "stars_far", 512, 512, 70, 1, 2);  // fine dust
+    createStarTexture(scene, "stars_far", 512, 512, 70, 1, 2); // fine dust
     createStarTexture(scene, "stars_near", 512, 512, 40, 1, 3); // brighter stars
 
     const w = scene.scale.width;
@@ -83,7 +83,7 @@ function createStarTexture(
   h: number,
   count: number,
   minR: number,
-  maxR: number
+  maxR: number,
 ) {
   const g = scene.add.graphics();
   g.fillStyle(0x000000, 1);

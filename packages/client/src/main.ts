@@ -9,14 +9,13 @@ const config: Phaser.Types.Core.GameConfig = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: 960,
-    height: 540
+    height: 540,
   },
   physics: {
     default: "matter",
-    matter: { gravity: { x: 0, y: 0 }, debug: false }
+    matter: { gravity: { x: 0, y: 0 }, debug: false },
   },
-  scene: [GameScene]
+  scene: [GameScene],
 };
 
 export default new Phaser.Game(config);
-

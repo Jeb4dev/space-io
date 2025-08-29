@@ -23,10 +23,16 @@ export class NamePrompt {
     nm.focus();
     return new Promise((res) => {
       let done = false;
-      const ok = () => { if (done) return; done = true; this.root.remove(); res(nm.value || "Anon"); };
+      const ok = () => {
+        if (done) return;
+        done = true;
+        this.root.remove();
+        res(nm.value || "Anon");
+      };
       btn.onclick = ok;
-      nm.onkeydown = (e) => { if (e.key === "Enter") ok(); };
+      nm.onkeydown = (e) => {
+        if (e.key === "Enter") ok();
+      };
     });
   }
 }
-

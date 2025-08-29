@@ -9,22 +9,22 @@ module.exports = {
     "plugin:@typescript-eslint/stylistic-type-checked",
     "plugin:import/recommended",
     "plugin:import/typescript",
-    "prettier"
+    "prettier",
   ],
   parserOptions: {
-    project: ["./packages/*/tsconfig.json"]
+    project: ["./packages/*/tsconfig.json"],
   },
   ignorePatterns: ["dist", "node_modules"],
   rules: {
     "unused-imports/no-unused-imports": "warn",
-    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
-    "import/order": ["warn", { "newlines-between": "always" }]
+    "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+    "import/order": ["warn", { "newlines-between": "always" }],
   },
   settings: {
     "import/resolver": {
       typescript: {
-        project: ["packages/*/tsconfig.json"]
-      }
-    }
-  }
+        project: ["packages/*/tsconfig.json"],
+      },
+    },
+  },
 };

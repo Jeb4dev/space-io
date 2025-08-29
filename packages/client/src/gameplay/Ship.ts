@@ -2,7 +2,7 @@ import Phaser from "phaser";
 
 type ShipOpts = {
   scale?: number;
-  angleOffsetRad?: number;   // rotate texture so 0 rad means “forward”
+  angleOffsetRad?: number; // rotate texture so 0 rad means “forward”
   showNose?: boolean;
   ringRadius?: number;
   noseOffsetFactor?: number; // from center to tip as fraction of width (default ~0.48)
@@ -10,10 +10,10 @@ type ShipOpts = {
 
 export default class Ship {
   private scene: Phaser.Scene;
-  sprite: Phaser.GameObjects.Image;   // PNG sprite
-  ring: Phaser.GameObjects.Arc;       // invuln/highlight ring
+  sprite: Phaser.GameObjects.Image; // PNG sprite
+  ring: Phaser.GameObjects.Arc; // invuln/highlight ring
   private _angleOffsetRad: number;
-  private _noseR: number;             // tip distance from center in world px
+  private _noseR: number; // tip distance from center in world px
   private _lastRot = 0;
 
   constructor(scene: Phaser.Scene, textureKey: string, opts: ShipOpts = {}) {
@@ -29,14 +29,10 @@ export default class Ship {
 
     this._angleOffsetRad = angleOffsetRad;
 
-    this.sprite = scene.add
-      .image(0, 0, textureKey)
-      .setOrigin(0.5, 0.5)
-      .setDepth(6)
-      .setScale(scale);
+    this.sprite = scene.add.image(0, 0, textureKey).setOrigin(0.5, 0.5).setDepth(6).setScale(scale);
 
     // Distance from center to nose tip (scaled)
-    this._noseR = (this.sprite.width * scale) * Math.min(0.5, Math.max(0, noseOffsetFactor));
+    this._noseR = this.sprite.width * scale * Math.min(0.5, Math.max(0, noseOffsetFactor));
 
     this.ring = scene.add
       .circle(0, 0, ringRadius, 0x000000, 0)
@@ -85,7 +81,7 @@ export default class Ship {
     const ang = this._lastRot + this._angleOffsetRad;
     nose.setPosition(
       this.sprite.x + Math.cos(ang) * this._noseR,
-      this.sprite.y + Math.sin(ang) * this._noseR
+      this.sprite.y + Math.sin(ang) * this._noseR,
     );
   }
 }

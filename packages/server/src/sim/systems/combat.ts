@@ -8,12 +8,13 @@ export const handleDeathsAndRespawn = (world: World, now: number) => {
     if (!p.deadUntil) p.deadUntil = now + 500;
     if (now >= p.deadUntil) {
       const pos = randEdgeSpawn(world);
-      p.x = pos.x; p.y = pos.y;
-      p.vx = 0; p.vy = 0;
+      p.x = pos.x;
+      p.y = pos.y;
+      p.vx = 0;
+      p.vy = 0;
       p.hp = PLAYER.baseHP;
       p.invulnUntil = now + PLAYER.invulnMs;
       p.deadUntil = undefined;
     }
   }
 };
-

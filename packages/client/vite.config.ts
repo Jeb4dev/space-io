@@ -4,13 +4,12 @@ import path from "path";
 export default defineConfig({
   server: {
     port: 15173,
-    strictPort: true
+    strictPort: true,
   },
   resolve: {
     alias: {
       "@client": path.resolve(__dirname, "./src"),
-      "@shared": path.resolve(__dirname, "../shared/src")
-    }
-  }
+      "@shared": path.resolve(__dirname, "../shared/src"),
+    },
+  },
 });
-

@@ -12,7 +12,7 @@ export class Interp {
   }
 
   step(dt: number, snapshotIntervalMs: number) {
-    this.alpha = Math.min(1, this.alpha + dt * 1000 / snapshotIntervalMs);
+    this.alpha = Math.min(1, this.alpha + (dt * 1000) / snapshotIntervalMs);
   }
 
   get(id: string): EntityState | undefined {
@@ -23,7 +23,7 @@ export class Interp {
     return {
       ...curr,
       x: prev.x + (curr.x - prev.x) * a,
-      y: prev.y + (curr.y - prev.y) * a
+      y: prev.y + (curr.y - prev.y) * a,
     };
   }
 
@@ -31,4 +31,3 @@ export class Interp {
     return Array.from(this.current.keys());
   }
 }
-

@@ -8,13 +8,7 @@ export type PickupType = "xp" | "hp";
 
 export type AltFireType = "railgun" | "spread";
 
-export type PowerupFamily =
-  | "Hull"
-  | "Damage"
-  | "Engine"
-  | "FireRate"
-  | "Magnet"
-  | "Shield";
+export type PowerupFamily = "Hull" | "Damage" | "Engine" | "FireRate" | "Magnet" | "Shield";
 
 export type PowerupChoice = {
   family: PowerupFamily | "AltFire";
@@ -76,4 +70,3 @@ export type ScoreEntry = {
   score: number;
   level: number;
 };
-

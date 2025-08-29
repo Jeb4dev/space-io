@@ -30,10 +30,14 @@ export function drawArenaBounds(ctx: DebugCtx): void {
   const sx = (wx: number) => cx + (wx - camX);
   const sy = (wy: number) => cy + (wy - camY);
 
-  const x0 = sx(0),        y0 = sy(0);
-  const x1 = sx(worldW),   y1 = sy(0);
-  const x2 = sx(worldW),   y2 = sy(worldH);
-  const x3 = sx(0),        y3 = sy(worldH);
+  const x0 = sx(0),
+    y0 = sy(0);
+  const x1 = sx(worldW),
+    y1 = sy(0);
+  const x2 = sx(worldW),
+    y2 = sy(worldH);
+  const x3 = sx(0),
+    y3 = sy(worldH);
 
   g.beginPath();
   g.moveTo(x0, y0);
@@ -54,21 +58,16 @@ export function drawGravityDebug(ctx: DebugCtx): void {
   const cy = scale.height / 2;
 
   // Net acceleration at the anchor
-  let ax = 0, ay = 0;
+  let ax = 0,
+    ay = 0;
 
   for (const w of wells) {
     const sx = cx + (w.x - camX);
     const sy = cy + (w.y - camY);
 
-    const colCore =
-      w.type === "planet" ? 0x4caf50 :
-        w.type === "sun"    ? 0xffc107 :
-          0x9c27b0; // blackhole
+    const colCore = w.type === "planet" ? 0x4caf50 : w.type === "sun" ? 0xffc107 : 0x9c27b0; // blackhole
 
-    const colInfl =
-      w.type === "planet" ? 0x81c784 :
-        w.type === "sun"    ? 0xffecb3 :
-          0xce93d8;
+    const colInfl = w.type === "planet" ? 0x81c784 : w.type === "sun" ? 0xffecb3 : 0xce93d8;
 
     // Influence radius
     g.lineStyle(1, colInfl, 0.7);
