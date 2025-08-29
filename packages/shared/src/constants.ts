@@ -7,13 +7,13 @@ export const PLAYER = {
   radius: 18,
   mass: 1,
   baseAccel: 500, // px/s^2
-  baseMaxSpeed: 200, // px/s
+  baseMaxSpeed: 300, // px/s
   baseHP: 100,
   invulnMs: 2000
 };
 
 export const BULLET = {
-  speed: 850,
+  speed: 1000,
   radius: 5,
   lifetimeMs: 1200,
   baseDamage: 12,

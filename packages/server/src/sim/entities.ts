@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { WORLD, PLAYER, BULLET, PICKUPS, POWERUPS, ALT_FIRE } from "@shared/constants";
+import { TICK_HZ } from "@shared/constants";
 import type { World, Player, Bullet, Pickup } from "./world";
 import { clamp, dist2, rndRange } from "@shared/math";
 import { ioSnapshot } from "./loop";
@@ -61,8 +62,10 @@ export const processInputs = (world: World, now: number) => {
     while (p.inputQueue.length) {
       const f = p.inputQueue.shift()!;
       // thrust towards pointer direction scaled by accel
-      p.vx += clamp(f.thrust.x, -1, 1) * p.accel * (f.dtMs / 1000);
-      p.vy += clamp(f.thrust.y, -1, 1) * p.accel * (f.dtMs / 1000);
+  // Make movement more floaty: reduce acceleration
+  const floatyAccel = p.accel * 0.6;
+  p.vx += clamp(f.thrust.x, -1, 1) * floatyAccel * (f.dtMs / 1000);
+  p.vy += clamp(f.thrust.y, -1, 1) * floatyAccel * (f.dtMs / 1000);
       const spd = Math.hypot(p.vx, p.vy);
       if (spd > p.maxSpeed) {
         const s = p.maxSpeed / (spd || 1);
@@ -170,13 +173,14 @@ export const tryFire = (world: World, p: Player, aim: number, now: number) => {
     const id = nanoid();
     const vx = Math.cos(aim + angleOffset) * speed;
     const vy = Math.sin(aim + angleOffset) * speed;
+    const muzzleDist = p.r + radius -50; // spawn at ship nose
     const b: Bullet = {
       id,
       ownerId: p.id,
-      x: p.x + cos * (p.r + 8),
-      y: p.y + sin * (p.r + 8),
-      vx: vx + p.vx * 0.2,
-      vy: vy + p.vy * 0.2,
+      x: p.x + Math.cos(aim + angleOffset) * muzzleDist,
+      y: p.y + Math.sin(aim + angleOffset) * muzzleDist,
+      vx,
+      vy,
       r: radius,
       damage,
       ttl,
@@ -207,6 +211,10 @@ export const tryFire = (world: World, p: Player, aim: number, now: number) => {
 };
 
 export const moveAndClamp = (p: Player, dt: number) => {
+  // Apply friction/damping for floaty feel
+  const damping = 0.98;
+  p.vx *= damping;
+  p.vy *= damping;
   p.x += p.vx * dt;
   p.y += p.vy * dt;
   if (p.x < 0 + p.r) { p.x = p.r; p.vx = 0; }
@@ -216,10 +224,17 @@ export const moveAndClamp = (p: Player, dt: number) => {
 };
 
 export const spawnPickupsIfNeeded = (world: World) => {
-  while (world.pickups.size < PICKUPS.targetCount) {
+  // Add a timer property to world if not present
+  if (!('pickupSpawnTimer' in world)) {
+    (world as any).pickupSpawnTimer = 0;
+  }
+  (world as any).pickupSpawnTimer += 1 / TICK_HZ;
+  // Spawn a pickup every 0.5 seconds if under target count
+  if (world.pickups.size < PICKUPS.targetCount && (world as any).pickupSpawnTimer >= 0.5) {
+    (world as any).pickupSpawnTimer = 0;
     const id = nanoid();
     const type = Math.random() < PICKUPS.hpOrbChance ? "hp" : "xp";
-    const value = type === "hp" ? PICKUPS.hpOrbValue : Math.floor(rndRange(...PICKUPS.xpValueRange));
+  const value = type === "hp" ? PICKUPS.hpOrbValue : Math.floor(rndRange(PICKUPS.xpValueRange[0], PICKUPS.xpValueRange[1]));
     const p: Pickup = { id, type, x: rndRange(40, WORLD.w - 40), y: rndRange(40, WORLD.h - 40), r: 10, value };
     world.pickups.set(id, p);
   }

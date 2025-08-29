@@ -2,32 +2,49 @@ import Phaser from "phaser";
 
 type BulletSprite = Phaser.GameObjects.Arc;
 
+interface ProjectileData {
+  sprite: BulletSprite;
+  vx: number;
+  vy: number;
+}
+
 export default class Projectiles {
-  private byId = new Map<string, BulletSprite>();
+  private byId = new Map<string, ProjectileData>();
 
   constructor(private scene: Phaser.Scene) {}
 
   // Create sprite if missing (radius can change)
-  ensure(id: string, r: number) {
-    let s = this.byId.get(id);
-    if (!s) {
-      s = this.scene.add.circle(0, 0, r, 0xffe066).setDepth(5);
-      this.byId.set(id, s);
+  // Add velocity parameters
+  ensure(id: string, r: number, vx: number, vy: number) {
+    let data = this.byId.get(id);
+    if (!data) {
+      const sprite = this.scene.add.circle(0, 0, r, 0xffe066).setDepth(5);
+      this.byId.set(id, { sprite, vx, vy });
     } else {
-      s.setRadius(r);
+      data.sprite.setRadius(r);
+      data.vx = vx;
+      data.vy = vy;
     }
   }
 
-  // Set screen-space position (computed in Scene from interpolated world coords)
+  // Set initial position
   place(id: string, sx: number, sy: number) {
-    const s = this.byId.get(id);
-    if (s) s.setPosition(sx, sy);
+    const data = this.byId.get(id);
+    if (data) data.sprite.setPosition(sx, sy);
+  }
+
+  // Call this in your Scene's update loop, passing delta time in seconds
+  update(dt: number) {
+    for (const { sprite, vx, vy } of this.byId.values()) {
+      sprite.x += vx * dt;
+      sprite.y += vy * dt;
+    }
   }
 
   removeMissing(currentIds: Set<string>) {
-    for (const [id, s] of this.byId) {
+    for (const [id, data] of this.byId) {
       if (!currentIds.has(id)) {
-        s.destroy();
+        data.sprite.destroy();
         this.byId.delete(id);
       }
     }

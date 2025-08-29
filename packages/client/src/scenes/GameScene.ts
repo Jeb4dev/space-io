@@ -177,7 +177,7 @@ onSnapshot(s: ServerSnapshot) {
   const bulletIds = new Set<string>();
   for (const e of s.entities) {
     if (e.kind === "bullet") {
-      this.bullets.ensure(e.id, e.r);
+      this.bullets.ensure(e.id, e.r, e.vx, e.vy); // Pass velocity here
       bulletIds.add(e.id);
     }
   }
@@ -322,5 +322,8 @@ update(_time: number, delta: number) {
   // Draw arena and gravity overlay (use camX/camY)
   drawArenaBounds(this);
   drawGravityDebug(this);
+
+  // Update bullets movement
+  this.bullets.update(delta / 1000);
 }
 }
