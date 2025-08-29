@@ -4,7 +4,7 @@ import { TICK_HZ } from "@shared/constants";
 import type { World, Player, Bullet, Pickup } from "./world";
 import { clamp, dist2, rndRange } from "@shared/math";
 import { ioSnapshot } from "./loop";
-import type { PowerupChoice } from "@shared/types";
+import type { PowerupChoice, PowerupFamily } from "@shared/types";
 
 export const addPlayer = (world: World, id: string, pos: { x: number; y: number }, socketId: string): Player => {
   const p: Player = {
@@ -32,7 +32,8 @@ export const addPlayer = (world: World, id: string, pos: { x: number; y: number 
     invulnUntil: 0,
     inputQueue: [],
     lastAckSeq: 0,
-    score: 0
+    score: 0,
+    mass: 0
   };
   world.players.set(id, p);
   return p;
@@ -143,12 +144,12 @@ const rollChoices = (p: Player): PowerupChoice[] => {
   const arr: PowerupChoice[] = [];
   const families = [...(Array.from({ length: POWERUPS.tiers }).keys())].map((i) => i + 1);
   const pool: PowerupChoice[] = [
-    ...families.map((tier) => ({ family: "Hull", tier, label: `Hull T${tier}`, desc: "+20 Max HP" })),
-    ...families.map((tier) => ({ family: "Damage", tier, label: `Damage T${tier}`, desc: "+4 Damage" })),
-    ...families.map((tier) => ({ family: "Engine", tier, label: `Engine T${tier}`, desc: "+Speed/Accel" })),
-    ...families.map((tier) => ({ family: "FireRate", tier, label: `Fire Rate T${tier}`, desc: "-Cooldown" })),
-    ...families.map((tier) => ({ family: "Magnet", tier, label: `Magnet T${tier}`, desc: "+Pickup Radius" })),
-    ...families.map((tier) => ({ family: "Shield", tier, label: `Shield T${tier}`, desc: "+Shield/HP" }))
+    ...families.map((tier) => ({ family: "Hull" as const, tier, label: `Hull T${tier}`, desc: "+20 Max HP" })),
+    ...families.map((tier) => ({ family: "Damage" as const, tier, label: `Damage T${tier}`, desc: "+4 Damage" })),
+    ...families.map((tier) => ({ family: "Engine" as const, tier, label: `Engine T${tier}`, desc: "+Speed/Accel" })),
+    ...families.map((tier) => ({ family: "FireRate" as const, tier, label: `Fire Rate T${tier}`, desc: "-Cooldown" })),
+    ...families.map((tier) => ({ family: "Magnet" as const, tier, label: `Magnet T${tier}`, desc: "+Pickup Radius" })),
+    ...families.map((tier) => ({ family: "Shield" as const, tier, label: `Shield T${tier}`, desc: "+Shield/HP" }))
   ];
   while (arr.length < 3) {
     // weight: prefer non-repeated families lightly
@@ -158,7 +159,7 @@ const rollChoices = (p: Player): PowerupChoice[] => {
   if (p.level >= 10 && !p.altFire) {
     // replace one with alt-fire choice
     const idx = Math.floor(Math.random() * 3);
-    arr[idx] = { family: "AltFire", alt: Math.random() < 0.5 ? "railgun" : "spread", label: "Alt Fire", desc: "Unlock special weapon" };
+    arr[idx] = { family: "AltFire" as const, alt: Math.random() < 0.5 ? "railgun" : "spread", label: "Alt Fire", desc: "Unlock special weapon" };
   }
   return arr;
 };
@@ -266,4 +267,3 @@ export const collectPickups = (world: World) => {
     }
   }
 };
-

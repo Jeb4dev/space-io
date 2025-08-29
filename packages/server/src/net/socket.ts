@@ -40,7 +40,9 @@ export const setupSocket = (io: Server, world: World) => {
     socket.on("choosePowerup", (raw) => {
       const parsed = LevelChoiceSchema.safeParse(raw);
       if (!parsed.success) return;
-      applyLevelChoice(world, playerId, parsed.data.chosen);
+      // Defensive: only accept valid choices
+      const chosen = parsed.data.chosen as import("@shared/types").PowerupChoice;
+      applyLevelChoice(world, playerId, chosen);
     });
 
     socket.on("disconnect", () => {
@@ -48,4 +50,3 @@ export const setupSocket = (io: Server, world: World) => {
     });
   });
 };
-

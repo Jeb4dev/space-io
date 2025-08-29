@@ -1,4 +1,3 @@
-
 import type { World, Player, Bullet } from "../world";
 import { GRAVITY } from "@shared/constants";
 import { clamp, dist2 } from "@shared/math";
@@ -12,8 +11,8 @@ export const applyGravity = (world: World, dt: number) => {
       if (d2 > w.influenceRadius * w.influenceRadius) continue;
       const force = Math.min(GRAVITY.G * w.mass / (d2 + GRAVITY.epsilon), w.maxPull);
       const d = Math.sqrt(d2) || 1;
-      const ax = (dx / d) * (force / Math.max(1, p.mass ?? 1));
-      const ay = (dy / d) * (force / Math.max(1, p.mass ?? 1));
+      const ax = (dx / d) * (force / Math.max(1, p.mass));
+      const ay = (dy / d) * (force / Math.max(1, p.mass));
       p.vx += ax * dt;
       p.vy += ay * dt;
 
@@ -86,4 +85,3 @@ export const bulletHits = (world: World, dt: number, now: number) => {
   }
   for (const id of toRemove) world.bullets.delete(id);
 };
-

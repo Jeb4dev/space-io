@@ -13,8 +13,9 @@ COPY packages/shared ./packages/shared
 COPY packages/server ./packages/server
 
 # 3) Install/build
-RUN npm -C packages/shared i && npm -C packages/shared run build
-RUN npm -C packages/server i && npm -C packages/server run build
+RUN pnpm -C packages/shared i && pnpm -C packages/shared build
+RUN pnpm -C packages/server i
+RUN pnpm -C packages/server build
 
 # Runtime
 FROM node:20-alpine

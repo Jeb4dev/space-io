@@ -42,6 +42,7 @@ export type Player = {
   lastAckSeq: number;
   deadUntil?: number;
   score: number;
+  mass: number;
 };
 
 export type Bullet = {
@@ -67,7 +68,8 @@ export type Pickup = {
 };
 
 export const createWorld = (): World => {
-  const wells: WellState[] = GRAVITY.wells.map((w) => ({ ...w }));
+  // Initialize wells from GRAVITY.wells, handling empty array case
+  const wells: WellState[] = GRAVITY.wells.map(w => ({ ...w }));
   return {
     w: WORLD.w,
     h: WORLD.h,
@@ -86,4 +88,3 @@ export const randEdgeSpawn = (world: World) => {
   if (side === 2) return { x: 20, y: rndRange(0, world.h) };
   return { x: world.w - 20, y: rndRange(0, world.h) };
 };
-
