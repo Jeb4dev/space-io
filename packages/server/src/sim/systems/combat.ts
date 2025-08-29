@@ -1,6 +1,6 @@
-import type { World, Player } from "../world";
-import { randEdgeSpawn } from "../world";
-import { PLAYER } from "@shared/constants";
+import type { World, Player } from "../world.js";
+import { randEdgeSpawn } from "../world.js";
+import { PLAYER } from "@shared/constants.js";
 
 export const handleDeathsAndRespawn = (world: World, now: number) => {
   for (const p of world.players.values()) {

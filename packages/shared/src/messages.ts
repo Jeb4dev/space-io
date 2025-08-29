@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { AltFireType, EntityState, PickupState, PowerupChoice, ScoreEntry, WellState } from "./types";
+import type { AltFireType, EntityState, PickupState, PowerupChoice, ScoreEntry, WellState } from "./types.js";
 
 export const V2Schema = z.object({ x: z.number(), y: z.number() });
 

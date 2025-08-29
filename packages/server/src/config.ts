@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { TICK_HZ, SNAPSHOT_HZ, ROOM } from "@shared/constants";
+import { TICK_HZ, SNAPSHOT_HZ, ROOM } from "@shared/constants.js";
 
 const n = (v: string | undefined, fallback: number) => {
   const parsed = Number(v);

@@ -1,24 +1,28 @@
+// packages/server/tsconfig.json
 {
   "compilerOptions": {
-    "target": "ES2021",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
     "outDir": "dist",
     "rootDir": "src",
+    "sourceMap": true,
+
     "declaration": false,
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "noEmitOnError": true,
     "esModuleInterop": true,
-    "baseUrl": "./",
+    "types": ["node"],
+
+    "baseUrl": ".",
     "paths": {
       "@shared/*": ["../shared/src/*"],
       "@server/*": ["./src/*"]
     }
   },
   "include": ["src"],
-  "references": [
-    { "path": "../shared" }
-  ]
+  "references": [{ "path": "../shared" }]
 }

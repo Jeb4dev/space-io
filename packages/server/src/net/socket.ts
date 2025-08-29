@@ -1,11 +1,11 @@
 import { Server, Socket } from "socket.io";
 import { nanoid } from "nanoid";
-import { ClientInputSchema, ClientJoinSchema, LevelChoiceSchema, ServerWelcome } from "@shared/messages";
-import type { World } from "../sim/world";
-import { addPlayer, removePlayer, setPlayerName, queueInput, applyLevelChoice } from "../sim/entities";
-import { config } from "../config";
-import { WORLD } from "@shared/constants";
-import { filterName } from "../util/nameFilter";
+import { ClientInputSchema, ClientJoinSchema, LevelChoiceSchema, ServerWelcome } from "@shared/messages.js";
+import type { World } from "../sim/world.js";
+import { addPlayer, removePlayer, setPlayerName, queueInput, applyLevelChoice } from "../sim/entities.js";
+import { config } from "../config.js";
+import { WORLD } from "@shared/constants.js";
+import { filterName } from "../util/nameFilter.js";
 
 export const setupSocket = (io: Server, world: World) => {
   io.on("connection", (socket: Socket) => {
@@ -41,7 +41,7 @@ export const setupSocket = (io: Server, world: World) => {
       const parsed = LevelChoiceSchema.safeParse(raw);
       if (!parsed.success) return;
       // Defensive: only accept valid choices
-      const chosen = parsed.data.chosen as import("@shared/types").PowerupChoice;
+      const chosen = parsed.data.chosen as import("@shared/types.js").PowerupChoice;
       applyLevelChoice(world, playerId, chosen);
     });
 

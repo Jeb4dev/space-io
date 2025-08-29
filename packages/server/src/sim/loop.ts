@@ -1,12 +1,12 @@
 import type { Server } from "socket.io";
-import type { World } from "./world";
-import { config } from "../config";
-import { applyGravity, bulletHits, integrate } from "./systems/physics";
-import { processInputs, moveAndClamp } from "./entities";
-import { updatePickups } from "./systems/pickups";
-import { handleDeathsAndRespawn } from "./systems/combat";
-import { getScoreboard } from "./systems/scoreboard";
-import { BULLET } from "@shared/constants";
+import type { World } from "./world.js";
+import { config } from "../config.js";
+import { applyGravity, bulletHits, integrate } from "./systems/physics.js";
+import { processInputs, moveAndClamp } from "./entities.js";
+import { updatePickups } from "./systems/pickups.js";
+import { handleDeathsAndRespawn } from "./systems/combat.js";
+import { getScoreboard } from "./systems/scoreboard.js";
+import { BULLET } from "@shared/constants.js";
 
 let snapshotAccumulator = 0;
 

@@ -1,5 +1,5 @@
-import type { World } from "../world";
-import { collectPickups, spawnPickupsIfNeeded } from "../entities";
+import type { World } from "../world.js";
+import { collectPickups, spawnPickupsIfNeeded } from "../entities.js";
 
 export const updatePickups = (world: World) => {
   spawnPickupsIfNeeded(world);

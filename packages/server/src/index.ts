@@ -1,14 +1,13 @@
-import "dotenv/config";
+// src/index.ts
 import express from "express";
 import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
-import { config } from "./config";
-import { setupSocket } from "./net/socket";
-import { createWorld } from "./sim/world";
-import { startLoop } from "./sim/loop";
-import { GRAVITY } from "@shared/constants";
-import "dotenv/config";
+import { config } from "./config.js";
+import { setupSocket } from "./net/socket.js";
+import { createWorld } from "./sim/world.js";
+import { startLoop } from "./sim/loop.js";
+import { GRAVITY } from "@shared/constants.js";
 
 const app = express();
 
@@ -25,4 +24,3 @@ startLoop(io, world);
 server.listen(config.port, () => {
   console.log(`[server] listening on :${config.port}`);
 });
-
