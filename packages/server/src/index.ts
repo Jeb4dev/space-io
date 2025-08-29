@@ -8,6 +8,7 @@ import { setupSocket } from "./net/socket";
 import { createWorld } from "./sim/world";
 import { startLoop } from "./sim/loop";
 import { GRAVITY } from "@shared/constants";
+import "dotenv/config";
 
 const app = express();
 
