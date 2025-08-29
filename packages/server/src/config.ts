@@ -11,8 +11,8 @@ export const config = {
   tickHz: n(process.env.TICK_HZ, TICK_HZ),
   snapshotHz: n(process.env.SNAPSHOT_HZ, SNAPSHOT_HZ),
   roomCap: n(process.env.ROOM_CAP, ROOM.cap),
-  corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
+  corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:15173",
   botsEnabled: (process.env.BOTS_ENABLED ?? "false").toLowerCase() === "true",
-  publicUrl: process.env.PUBLIC_URL ?? "http://localhost:8080"
+  publicUrl: process.env.PUBLIC_URL ?? "http://localhost:18080"
 } as const;
 

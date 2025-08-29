@@ -24,5 +24,5 @@ ENV NODE_ENV=production
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages/server/dist ./dist
 COPY --from=build /app/packages/server/package.json ./
-EXPOSE 8080
+EXPOSE 18080
 CMD ["node", "dist/index.js"]
