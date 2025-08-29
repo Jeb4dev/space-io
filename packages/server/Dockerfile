@@ -45,4 +45,4 @@ RUN pnpm install --prod --frozen-lockfile
 
 WORKDIR /app/packages/server
 EXPOSE 18080
-CMD ["node", "dist/index.js"]
+CMD ["node", "--experimental-specifier-resolution=node", "dist/index.js"]
