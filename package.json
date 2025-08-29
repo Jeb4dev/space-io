@@ -1,0 +1,27 @@
+{
+  "name": "space-io",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n SERVER,CLIENT -c blue,green \"pnpm -C packages/server dev\" \"pnpm -C packages/client dev\"",
+    "build": "pnpm -C packages/shared build && pnpm -C packages/server build && pnpm -C packages/client build",
+    "start": "pnpm -C packages/server start",
+    "typecheck": "pnpm -C packages/shared typecheck && pnpm -C packages/server typecheck && pnpm -C packages/client typecheck",
+    "lint": "eslint .",
+    "format": "prettier -w ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "eslint": "^9.6.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-unused-imports": "^3.2.0",
+    "prettier": "^3.3.3",
+    "tsx": "^4.20.5",
+    "turbo": "^2.0.9",
+    "typescript": "^5.4.5"
+  }
+}

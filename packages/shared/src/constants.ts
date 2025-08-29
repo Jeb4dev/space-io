@@ -1,0 +1,67 @@
+export const TICK_HZ = 30;
+export const SNAPSHOT_HZ = 12;
+
+export const WORLD = { w: 4000, h: 3000, outOfBoundsClamp: 20 };
+
+export const PLAYER = {
+  radius: 18,
+  mass: 1,
+  baseAccel: 900, // px/s^2
+  baseMaxSpeed: 400, // px/s
+  baseHP: 100,
+  invulnMs: 2000
+};
+
+export const BULLET = {
+  speed: 850,
+  radius: 5,
+  lifetimeMs: 1200,
+  baseDamage: 12,
+  cooldownMs: 220
+};
+
+export const ALT_FIRE = {
+  railgun: { damage: 120, cooldownMs: 1800, speed: 1300, radius: 7, lifetimeMs: 1000 },
+  spread: {
+    pellets: 3,
+    spreadDeg: 16,
+    damage: 10,
+    cooldownMs: 700,
+    speed: 780,
+    radius: 5,
+    lifetimeMs: 650
+  }
+};
+
+export const PICKUPS = {
+  targetCount: 80,
+  xpValueRange: [5, 20],
+  hpOrbChance: 0.08,
+  hpOrbValue: 25,
+  magnetBaseRadius: 100
+};
+
+export const GRAVITY = {
+  G: 260000, // tuned for game feel
+  epsilon: 1600, // avoids singularities
+  maxPull: 1800,
+  wells: [
+    // seeded world layout
+    { id: "planetA", x: 800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400 },
+    { id: "sunA", x: 3000, y: 700, mass: 4e6, radius: 160, influenceRadius: 800, type: "sun" as const, maxPull: 2000 },
+    { id: "holeA", x: 2100, y: 2300, mass: 6e6, radius: 110, influenceRadius: 950, type: "blackhole" as const, maxPull: 2600 }
+  ],
+  sunHeatDps: 18,
+  blackHoleEdgeDps: 40
+};
+
+export const POWERUPS = {
+  xpBase: 60, // base for level curve
+  families: ["Hull", "Damage", "Engine", "FireRate", "Magnet", "Shield"] as const,
+  tiers: 5
+};
+
+export const SCOREBOARD = { top: 10 };
+
+export const ROOM = { cap: 16 };
+
