@@ -11,3 +11,5 @@ Client on http://localhost:15173
 --
 
 docker compose up --build
+
+meow
