@@ -1,4 +1,4 @@
-import type { PowerupChoice } from "@shared/types";
+import type { PowerupChoice } from "@game/shared";
 
 export class LevelUpModal {
   root: HTMLDivElement;
@@ -15,8 +15,12 @@ export class LevelUpModal {
     this.hide();
   }
 
-  hide() { this.root.style.display = "none"; }
-  show() { this.root.style.display = "flex"; }
+  hide() {
+    this.root.style.display = "none";
+  }
+  show() {
+    this.root.style.display = "flex";
+  }
 
   async choose(choices: PowerupChoice[]): Promise<PowerupChoice> {
     this.show();
@@ -35,4 +39,3 @@ export class LevelUpModal {
     return result;
   }
 }
-

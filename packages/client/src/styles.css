@@ -1,4 +1,6 @@
-html, body, #game {
+html,
+body,
+#game {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -11,8 +13,11 @@ html, body, #game {
 
 .ui-overlay {
   position: fixed;
-  left: 0; top: 0; right: 0;
-  display: flex; justify-content: center;
+  left: 0;
+  top: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
   pointer-events: none;
   font-family: system-ui, sans-serif;
 }
@@ -20,52 +25,101 @@ html, body, #game {
 .modal {
   pointer-events: auto;
   margin-top: 15vh;
-  background: rgba(10,12,18,0.95);
+  background: rgba(10, 12, 18, 0.95);
   color: #d7e0ff;
   border: 1px solid #2a3350;
   border-radius: 12px;
   padding: 16px;
   width: min(520px, 92vw);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-.modal h2 { margin: 0 0 8px; font-size: 20px; }
+.modal h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
 .modal .choices {
-  display: grid; grid-template-columns: 1fr; gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 .modal button {
-  background: #0d1320; color: #e6ecff;
-  border: 1px solid #2c3555; border-radius: 10px;
-  padding: 12px; width: 100%; text-align: left; cursor: pointer;
+  background: #0d1320;
+  color: #e6ecff;
+  border: 1px solid #2c3555;
+  border-radius: 10px;
+  padding: 12px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 }
-.modal button:hover { background: #121a2b; }
+.modal button:hover {
+  background: #121a2b;
+}
 
 .hud {
-  position: fixed; pointer-events: none;
-  top: 8px; right: 8px; color: #d7e0ff; font-size: 14px;
+  position: fixed;
+  pointer-events: none;
+  top: 8px;
+  right: 8px;
+  color: #d7e0ff;
+  font-size: 14px;
 }
 .hud .card {
-  background: rgba(10,12,18,0.7); border: 1px solid #29324d;
-  padding: 8px 10px; border-radius: 10px; margin-bottom: 6px;
+  background: rgba(10, 12, 18, 0.7);
+  border: 1px solid #29324d;
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 6px;
 }
 
 .bottom-bars {
-  position: fixed; left: 50%; transform: translateX(-50%);
-  bottom: 10px; display: flex; gap: 8px; pointer-events: none;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 10px;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
 }
 .bar {
-  width: 36vw; max-width: 520px; height: 12px; border-radius: 8px; background: #1a2234; border: 1px solid #2b3452;
+  width: 36vw;
+  max-width: 520px;
+  height: 12px;
+  border-radius: 8px;
+  background: #1a2234;
+  border: 1px solid #2b3452;
 }
-.bar > div { height: 100%; border-radius: 8px; background: #4aa3ff; }
-.bar.hp > div { background: #ff5b7b; }
-.bar.xp > div { background: #6be46b; }
+.bar > div {
+  height: 100%;
+  border-radius: 8px;
+  background: #4aa3ff;
+}
+.bar.hp > div {
+  background: #ff5b7b;
+}
+.bar.xp > div {
+  background: #6be46b;
+}
 
 .touch-fire {
-  position: fixed; right: 18px; bottom: 18px; width: 84px; height: 84px;
-  border-radius: 50%; background: #0e1422bd; border: 2px solid #2d385a;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.35); color: #d7e0ff;
-  pointer-events: auto; display: none; align-items: center; justify-content: center;
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: #0e1422bd;
+  border: 2px solid #2d385a;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  color: #d7e0ff;
+  pointer-events: auto;
+  display: none;
+  align-items: center;
+  justify-content: center;
 }
 @media (hover: none) and (pointer: coarse) {
-  .touch-fire { display: flex; }
+  .touch-fire {
+    display: flex;
+  }
 }

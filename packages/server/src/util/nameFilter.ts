@@ -9,4 +9,3 @@ export const filterName = (name: string) => {
   if (!cleaned) cleaned = "Anon";
   return cleaned.slice(0, 24);
 };
-

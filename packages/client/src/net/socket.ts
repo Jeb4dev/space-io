@@ -1,6 +1,11 @@
 import { io, Socket } from "socket.io-client";
-import type { ClientInput, ServerSnapshot, ServerEvent, ServerWelcome } from "@shared/messages";
-import { ClientInputSchema, ServerEventSchema, ServerSnapshotSchema, ServerWelcomeSchema } from "@shared/messages";
+import type { ClientInput, ServerSnapshot, ServerEvent, ServerWelcome } from "@game/shared";
+import {
+  ClientInputSchema,
+  ServerEventSchema,
+  ServerSnapshotSchema,
+  ServerWelcomeSchema,
+} from "@game/shared";
 
 export class Net {
   socket!: Socket;
@@ -50,4 +55,3 @@ export class Net {
     this.socket.emit("choosePowerup", { chosen: payload });
   }
 }
-

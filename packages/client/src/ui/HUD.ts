@@ -9,9 +9,14 @@ export class HUD {
     this.root.className = "hud";
     document.body.appendChild(this.root);
 
-    const hp = document.createElement("div"); hp.className = "bar hp"; hp.innerHTML = "<div style='width:100%'></div>";
-    const xp = document.createElement("div"); xp.className = "bar xp"; xp.innerHTML = "<div style='width:0%'></div>";
-    const barsWrap = document.createElement("div"); barsWrap.className = "bottom-bars";
+    const hp = document.createElement("div");
+    hp.className = "bar hp";
+    hp.innerHTML = "<div style='width:100%'></div>";
+    const xp = document.createElement("div");
+    xp.className = "bar xp";
+    xp.innerHTML = "<div style='width:0%'></div>";
+    const barsWrap = document.createElement("div");
+    barsWrap.className = "bottom-bars";
     barsWrap.append(hp, xp);
     document.body.appendChild(barsWrap);
 
@@ -19,7 +24,10 @@ export class HUD {
     board.className = "card";
     this.root.appendChild(board);
 
-    this.bars = { hp: hp.firstElementChild as HTMLDivElement, xp: xp.firstElementChild as HTMLDivElement };
+    this.bars = {
+      hp: hp.firstElementChild as HTMLDivElement,
+      xp: xp.firstElementChild as HTMLDivElement,
+    };
     this.board = board;
   }
 
@@ -34,8 +42,9 @@ export class HUD {
   }
 
   setScoreboard(entries: Array<{ name: string; score: number; level: number }>) {
-    const lines = entries.map((e, i) => `${i + 1}. ${e.name} — ${e.score} (Lv ${e.level})`).join("<br/>");
+    const lines = entries
+      .map((e, i) => `${i + 1}. ${e.name} — ${e.score} (Lv ${e.level})`)
+      .join("<br/>");
     this.board.innerHTML = `<strong>Top 10</strong><br/>${lines || "No players"}`;
   }
 }
-

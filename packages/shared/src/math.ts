@@ -1,4 +1,4 @@
-import type { V2 } from "./types";
+import type { V2 } from "./types.ts";
 
 export const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
@@ -22,4 +22,3 @@ export const wrapWithin = (v: number, min: number, max: number) => {
   if (v > max) return max;
   return v;
 };
-

@@ -1,4 +1,3 @@
 export const rng = {
-  next: () => Math.random()
+  next: () => Math.random(),
 };
-

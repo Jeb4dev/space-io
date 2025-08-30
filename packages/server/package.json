@@ -1,27 +1,31 @@
 {
-  "name": "@space-io/server",
-  "version": "0.1.0",
+  "name": "@game/server",
+  "version": "0.0.0",
   "type": "module",
+  "private": true,
+  "main": "./dist/server.js",
   "scripts": {
-    "dev": "tsx watch -r tsconfig-paths/register src/index.ts",
-    "build": "tsc -b",
-    "start": "node dist/index.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "build": "tsc -p tsconfig.json",
+    "dev": "concurrently -n sharedBuild,server \"npm:build -w @game/shared -- --watch\" \"tsx watch src/server.ts\"",
+    "start": "node dist/server.js",
+    "clean": "rimraf dist"
   },
   "dependencies": {
-    "@space-io/shared": "workspace:*",
+    "@game/shared": "workspace:*",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "nanoid": "^5.0.7",
-    "socket.io": "^4.7.5",
-    "zod": "^3.23.8"
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "nanoid": "^5.1.5",
+    "socket.io": "^4.8.1",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.4.5"
+    "@types/node": "^22.18.0",
+    "@types/socket.io": "^3.0.2",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
   }
 }

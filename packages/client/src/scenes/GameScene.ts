@@ -296,10 +296,6 @@ update(_time: number, delta: number) {
   if (youI) {
     for (const id of this.interp.ids()) {
       const e = this.interp.get(id)!;
-      if (youI.kind === "player") {
-        if (youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
-        if (youI.xpToNext) this.hud.setXP(youI.xp ?? 0, youI.xpToNext);
-      }
       if (e.kind === "bullet") {
         this.bullets.place(id, cx + (e.x - youI.x), cy + (e.y - youI.y));
       }

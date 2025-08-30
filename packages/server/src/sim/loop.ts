@@ -1,12 +1,12 @@
 import type { Server } from "socket.io";
-import type { World } from "./world";
-import { config } from "../config";
-import { applyGravity, bulletHits, integrate } from "./systems/physics";
-import { processInputs, moveAndClamp } from "./entities";
-import { updatePickups } from "./systems/pickups";
-import { handleDeathsAndRespawn } from "./systems/combat";
-import { getScoreboard } from "./systems/scoreboard";
-import { BULLET } from "@shared/constants";
+import type { World } from "./world.js";
+import { config } from "../config.js";
+import { applyGravity, bulletHits, integrate } from "./systems/physics.js";
+import { processInputs, moveAndClamp } from "./entities.js";
+import { updatePickups } from "./systems/pickups.js";
+import { handleDeathsAndRespawn } from "./systems/combat.js";
+import { getScoreboard } from "./systems/scoreboard.js";
+import { BULLET } from "@game/shared";
 
 let snapshotAccumulator = 0;
 
@@ -49,9 +49,15 @@ export const ioSnapshot = (io: Server, world: World) => {
     acks: undefined as unknown as { seq: number }, // per-player fill
     youId: "", // per-player fill
     entities: [] as any[],
-    pickups: Array.from(world.pickups.values()).map((p) => ({ id: p.id, type: p.type, x: p.x, y: p.y, value: p.value })),
+    pickups: Array.from(world.pickups.values()).map((p) => ({
+      id: p.id,
+      type: p.type,
+      x: p.x,
+      y: p.y,
+      value: p.value,
+    })),
     wells: world.wells.map((w) => ({ ...w })),
-    scoreboard: getScoreboard(world)
+    scoreboard: getScoreboard(world),
   };
 
   for (const p of world.players.values()) {
@@ -78,8 +84,8 @@ export const ioSnapshot = (io: Server, world: World) => {
         vx: b.vx,
         vy: b.vy,
         r: b.r,
-        ownerId: b.ownerId
-      }))
+        ownerId: b.ownerId,
+      })),
     ];
     const sock = io.sockets.sockets.get(p.socketId);
     if (!sock) continue;
@@ -87,8 +93,7 @@ export const ioSnapshot = (io: Server, world: World) => {
       ...snapshot,
       youId: p.id,
       entities: ents,
-      acks: { seq: p.lastAckSeq }
+      acks: { seq: p.lastAckSeq },
     });
   }
 };
-
