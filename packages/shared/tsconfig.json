@@ -8,7 +8,8 @@
     "paths": {
       "@game/shared": ["../shared/src/index.ts"],
       "@game/shared/*": ["../shared/src/*"]
-    }
+    },
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
   },
   "include": ["src/**/*"],
   "references": [{ "path": "../shared" }]
