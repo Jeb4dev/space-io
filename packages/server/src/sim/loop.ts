@@ -6,9 +6,11 @@ import { processInputs, moveAndClamp } from "./entities.js";
 import { updatePickups } from "./systems/pickups.js";
 import { handleDeathsAndRespawn } from "./systems/combat.js";
 import { getScoreboard } from "./systems/scoreboard.js";
+import { spawnBot, updateBots, cleanupBots, getBotCount } from "./systems/bots.js";
 import { BULLET } from "@shared/constants.js";
 
 let snapshotAccumulator = 0;
+let botSpawnAccumulator = 0;
 
 export const startLoop = (io: Server, world: World) => {
   world.io = io;
@@ -21,6 +23,25 @@ export const startLoop = (io: Server, world: World) => {
     last = now;
 
     world.tick++;
+
+    // Bot management
+    if (config.botsEnabled) {
+      updateBots(world, now);
+      cleanupBots(world);
+
+      // Spawn bots periodically to maintain population
+      botSpawnAccumulator += dt * 1000;
+      if (botSpawnAccumulator >= 3000) {
+        botSpawnAccumulator = 0;
+        const humanPlayers = Array.from(world.players.values()).filter((p) => p.socketId !== "");
+        const targetBotCount = Math.min(8, Math.max(2, humanPlayers.length * 2)); // 2x human players, max 8
+
+        if (getBotCount() < targetBotCount) {
+          spawnBot(world);
+        }
+      }
+    }
+
     processInputs(world, now);
     applyGravity(world, dt);
     integrate(world, dt);
@@ -60,7 +81,10 @@ export const ioSnapshot = (io: Server, world: World) => {
     scoreboard: getScoreboard(world),
   };
 
+  // Only send snapshots to real players (those with socket connections)
   for (const p of world.players.values()) {
+    if (!p.socketId) continue; // Skip bots - they don't have sockets
+
     const ents = [
       ...Array.from(world.players.values()).map((op) => ({
         id: op.id,

@@ -4,6 +4,7 @@ import { TICK_HZ } from "@shared/constants.js";
 import type { World, Player, Bullet, Pickup } from "./world.js";
 import { clamp, dist2, rndRange } from "@shared/math.js";
 import { ioSnapshot } from "./loop.js";
+import { removeBot } from "./systems/bots.js";
 import type { PowerupChoice, PowerupFamily } from "@shared/types.js";
 
 export const addPlayer = (
@@ -46,6 +47,7 @@ export const addPlayer = (
 
 export const removePlayer = (world: World, id: string) => {
   world.players.delete(id);
+  removeBot(id); // Clean up bot data if this was a bot
 };
 
 export const setPlayerName = (world: World, id: string, name: string) => {

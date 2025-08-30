@@ -33,6 +33,7 @@ export default class GameScene extends Phaser.Scene {
 
   wells: WellState[] = [];
   debugWellsOn = true;
+  debugFullView = false; // New debug flag for full arena view
   wellGfx!: Phaser.GameObjects.Graphics;
 
   // arena/bounds
@@ -93,6 +94,23 @@ export default class GameScene extends Phaser.Scene {
       this.wellGfx.clear();
     });
 
+    // Debug key "I" to toggle full arena view
+    this.input.keyboard?.on("keydown-I", () => {
+      this.debugFullView = !this.debugFullView;
+      if (this.debugFullView) {
+        // Set camera to show entire arena
+        const scaleX = this.scale.width / this.worldW;
+        const scaleY = this.scale.height / this.worldH;
+        const scale = Math.min(scaleX, scaleY) * 0.9; // 0.9 for some padding
+        this.cameras.main.setZoom(scale);
+        this.cameras.main.centerOn(this.worldW / 2, this.worldH / 2);
+      } else {
+        // Reset camera to normal view
+        this.cameras.main.setZoom(1);
+        this.cameras.main.centerOn(0, 0);
+      }
+    });
+
     // Touch FIRE button (mobile)
     this.touchFireBtn = document.createElement("div");
     this.touchFireBtn.className = "touch-fire";
@@ -146,9 +164,12 @@ export default class GameScene extends Phaser.Scene {
     // Ensure your ship exists immediately (in case no snapshot yet)
     const youId = this.net.youId!;
     if (!this.ships.has(youId)) {
-      const ship = new Ship(this, SHIP_TEX_KEY, { scale: 1, ringRadius: 18, showNose: true });
-      ship.sprite.setDepth(1000);
-      ship.ring.setDepth(1001);
+      const ship = new Ship(this, { scale: 1, ringRadius: 18, showNose: true });
+      ship.body.setDepth(1000);
+      ship.wings.setDepth(1001);
+      ship.window.setDepth(1002);
+      ship.point.setDepth(1003);
+      ship.ring.setDepth(1004);
       ship.setTint(SELF_TINT); // remove this if your PNG is already colored as desired
       this.ships.set(youId, ship);
     }
@@ -162,7 +183,7 @@ export default class GameScene extends Phaser.Scene {
     if (!you) return;
 
     if (!this.ships.has(you.id)) {
-      const me = new Ship(this, SHIP_TEX_KEY, { scale: 1, ringRadius: 18, showNose: true });
+      const me = new Ship(this, { scale: 1, ringRadius: 18, showNose: true });
       me.setTint(SELF_TINT);
       this.ships.set(you.id, me);
     }
@@ -198,7 +219,7 @@ export default class GameScene extends Phaser.Scene {
     for (const e of s.entities) {
       if (e.kind !== "player") continue;
       if (!this.ships.has(e.id)) {
-        const ship = new Ship(this, SHIP_TEX_KEY, { scale: 1, ringRadius: 18, showNose: true });
+        const ship = new Ship(this, { scale: 1, ringRadius: 18, showNose: true });
         ship.setTint(e.id === you.id ? SELF_TINT : OTHER_TINT);
         this.ships.set(e.id, ship);
       }
@@ -216,13 +237,31 @@ export default class GameScene extends Phaser.Scene {
     const cx = this.scale.width / 2;
     const cy = this.scale.height / 2;
 
-    // Compute aim toward current pointer each frame (camera fixed at center)
+    // Compute aim toward current pointer each frame
     const pointer = this.input.activePointer;
-    this.aim = Math.atan2(pointer.worldY - cy, pointer.worldX - cx);
 
-    // If mouse is near the ship (center), stop acceleration
-    const mouseDist = Math.hypot(pointer.worldX - cx, pointer.worldY - cy);
-    const stopRadius = 80; // px, tweak as needed
+    if (this.debugFullView) {
+      // In full view mode, aim is relative to world coordinates
+      const worldPointerX = pointer.worldX;
+      const worldPointerY = pointer.worldY;
+      const youI = this.interp.get(this.net.youId || "") ?? this.interp.current.get(this.net.youId || "");
+      if (youI) {
+        this.aim = Math.atan2(worldPointerY - youI.y, worldPointerX - youI.x);
+      }
+    } else {
+      // Normal mode: aim relative to screen center
+      this.aim = Math.atan2(pointer.worldY - cy, pointer.worldX - cx);
+    }
+
+    // If mouse is near the ship, stop acceleration
+    const youI = this.interp.get(this.net.youId || "") ?? this.interp.current.get(this.net.youId || "");
+    let mouseDist = 0;
+    if (this.debugFullView && youI) {
+      mouseDist = Math.hypot(pointer.worldX - youI.x, pointer.worldY - youI.y);
+    } else {
+      mouseDist = Math.hypot(pointer.worldX - cx, pointer.worldY - cy);
+    }
+    const stopRadius = this.debugFullView ? 100 : 80; // Larger radius in full view
 
     if ((this.alwaysThrust || this.isThrusting) && mouseDist > stopRadius) {
       this.thrust = { x: Math.cos(this.aim), y: Math.sin(this.aim) };
@@ -251,58 +290,92 @@ export default class GameScene extends Phaser.Scene {
       this.lastInputAt = now;
     }
 
-    // Interpolated "you" for smooth rendering/camera base
-    const youI =
-      this.interp.get(this.net.youId || "") ?? this.interp.current.get(this.net.youId || "");
-
     if (youI) {
-      // Other players relative to interpolated you
-      for (const id of this.interp.ids()) {
-        const e = this.interp.get(id)!;
-        if (e.kind !== "player" || id === this.net.youId) continue;
+      if (this.debugFullView) {
+        // Full view mode: position entities at their world coordinates
+        for (const id of this.interp.ids()) {
+          const e = this.interp.get(id)!;
+          if (e.kind !== "player") continue;
 
-        const ship = this.ships.get(id);
-        if (!ship) continue;
+          const ship = this.ships.get(id);
+          if (!ship) continue;
 
-        ship.setPosition(cx + (e.x - youI.x), cy + (e.y - youI.y));
+          ship.setPosition(e.x, e.y);
 
-        // Face their movement direction (guard tiny velocities)
-        const spd = Math.hypot(e.vx, e.vy);
-        if (spd > 0.001) ship.setRotation(Math.atan2(e.vy, e.vx));
-      }
+          // Face their movement direction (guard tiny velocities)
+          const spd = Math.hypot(e.vx, e.vy);
+          if (spd > 0.001) {
+            ship.setRotation(Math.atan2(e.vy, e.vx));
+          } else if (id === this.net.youId) {
+            // Your ship faces aim direction when not moving
+            ship.setRotation(this.aim);
+          }
+        }
 
-      // Your ship stays centered and faces aim
-      const myShip = this.ships.get(this.net.youId!);
-      if (myShip) {
-        myShip.setPosition(cx, cy);
-        myShip.setRotation(this.aim);
+        // Bullets in full view
+        for (const id of this.interp.ids()) {
+          const e = this.interp.get(id)!;
+          if (e.kind === "bullet") {
+            this.bullets.place(id, e.x, e.y);
+          }
+        }
+
+        // Pickups in full view
+        for (const [id, cur] of this.pickCurr) {
+          const prev = this.pickPrev.get(id) || cur;
+          const x = prev.x + (cur.x - prev.x) * this.pickAlpha;
+          const y = prev.y + (cur.y - prev.y) * this.pickAlpha;
+          this.pickups.place(id, x, y);
+        }
+      } else {
+        // Normal mode: position entities relative to player
+        for (const id of this.interp.ids()) {
+          const e = this.interp.get(id)!;
+          if (e.kind !== "player" || id === this.net.youId) continue;
+
+          const ship = this.ships.get(id);
+          if (!ship) continue;
+
+          ship.setPosition(cx + (e.x - youI.x), cy + (e.y - youI.y));
+
+          // Face their movement direction (guard tiny velocities)
+          const spd = Math.hypot(e.vx, e.vy);
+          if (spd > 0.001) ship.setRotation(Math.atan2(e.vy, e.vx));
+        }
+
+        // Your ship stays centered and faces aim
+        const myShip = this.ships.get(this.net.youId!);
+        if (myShip) {
+          myShip.setPosition(cx, cy);
+          myShip.setRotation(this.aim);
+        }
+
+        // Bullets in normal mode
+        for (const id of this.interp.ids()) {
+          const e = this.interp.get(id)!;
+          if (e.kind === "bullet") {
+            this.bullets.place(id, cx + (e.x - youI.x), cy + (e.y - youI.y));
+          }
+        }
+
+        // Pickups in normal mode
+        for (const [id, cur] of this.pickCurr) {
+          const prev = this.pickPrev.get(id) || cur;
+          const x = prev.x + (cur.x - prev.x) * this.pickAlpha;
+          const y = prev.y + (cur.y - prev.y) * this.pickAlpha;
+          this.pickups.place(id, cx + (x - youI.x), cy + (y - youI.y));
+        }
       }
 
       // Parallax + HUD from interpolated you (dt for framerate independence)
-      this.parallax.update(youI.vx, youI.vy, delta);
-      if (youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
-    }
-
-    // Bullets: place via interpolated entities
-    if (youI) {
-      for (const id of this.interp.ids()) {
-        const e = this.interp.get(id)!;
-        if (e.kind === "bullet") {
-          this.bullets.place(id, cx + (e.x - youI.x), cy + (e.y - youI.y));
-        }
+      if (!this.debugFullView) {
+        this.parallax.update(youI.vx, youI.vy, delta);
       }
+      if (youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
     }
 
     // Pickups: interpolate between snapshots
     this.pickAlpha = Math.min(1, this.pickAlpha + delta / (1000 / SNAPSHOT_HZ));
-    if (youI) {
-      for (const [id, cur] of this.pickCurr) {
-        const prev = this.pickPrev.get(id) || cur;
-        const x = prev.x + (cur.x - prev.x) * this.pickAlpha;
-        const y = prev.y + (cur.y - prev.y) * this.pickAlpha;
-        this.pickups.place(id, cx + (x - youI.x), cy + (y - youI.y));
-      }
-    }
 
     // Camera anchor for debug drawers
     if (youI) {
