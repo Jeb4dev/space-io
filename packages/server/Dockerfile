@@ -1,49 +1,48 @@
 # packages/server/Dockerfile
 
-# ========= Builder =========
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Use the same pnpm version as your lockfile (adjust if needed)
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
-# Workspace manifests (better layer caching)
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
-COPY packages/shared/package.json packages/shared/
-COPY packages/server/package.json packages/server/
+# Copy workspace configuration
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 
-# Install WITH devDependencies (needed for TypeScript in the builder)
-RUN pnpm install --frozen-lockfile --prod=false
+# Copy all package.json files first for better layer caching
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/server/package.json ./packages/server/
 
-# Copy sources
-COPY packages/shared packages/shared
-COPY packages/server packages/server
+# Install all workspace dependencies
+RUN pnpm install --frozen-lockfile
 
-# Compile shared, then server using the workspace TypeScript
-RUN pnpm -r build
+# Copy source code
+COPY packages/shared ./packages/shared
+COPY packages/server ./packages/server
 
-# ========= Runtime =========
-FROM node:20-alpine AS runtime
+# Build shared package first, then server
+RUN pnpm -C packages/shared build
+RUN pnpm -C packages/server build
+
+# Runtime stage
+FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
-# Workspace manifests
+# Copy workspace files needed for production
 COPY --from=build /app/pnpm-workspace.yaml ./
 COPY --from=build /app/package.json ./
 COPY --from=build /app/pnpm-lock.yaml ./
-COPY --from=build /app/tsconfig.base.json ./
 
-# Copy only what's needed at runtime
-COPY --from=build /app/packages/shared/package.json packages/shared/package.json
-COPY --from=build /app/packages/shared/dist           packages/shared/dist
-COPY --from=build /app/packages/server/package.json  packages/server/package.json
-COPY --from=build /app/packages/server/dist          packages/server/dist
+# Copy built packages
+COPY --from=build /app/packages/shared ./packages/shared
+COPY --from=build /app/packages/server/package.json ./packages/server/
+COPY --from=build /app/packages/server/dist ./packages/server/dist
 
-# Install production deps and link workspace packages
-RUN pnpm install --frozen-lockfile --prod
+# Install production dependencies (this will properly link workspace packages)
+RUN pnpm install --prod --frozen-lockfile
 
 WORKDIR /app/packages/server
-EXPOSE 8080
+EXPOSE 18080
 CMD ["node", "--experimental-specifier-resolution=node", "dist/index.js"]

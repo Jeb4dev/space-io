@@ -1,4 +1,4 @@
-import type { PowerupChoice } from "@game/shared";
+import type { PowerupChoice } from "@shared/types";
 
 export class LevelUpModal {
   root: HTMLDivElement;

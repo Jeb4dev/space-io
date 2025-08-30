@@ -1,6 +1,6 @@
 import type { World, Player, Bullet } from "../world.js";
-import { GRAVITY } from "@game/shared";
-import { clamp, dist2 } from "@game/shared";
+import { GRAVITY } from "@shared/constants.js";
+import { clamp, dist2 } from "@shared/math.js";
 
 export const applyGravity = (world: World, dt: number) => {
   for (const p of world.players.values()) {

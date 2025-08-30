@@ -1,4 +1,4 @@
-import type { EntityState } from "@game/shared";
+import type { EntityState } from "@shared/messages";
 
 export class Interp {
   previous = new Map<string, EntityState>();

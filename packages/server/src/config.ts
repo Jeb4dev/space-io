@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { TICK_HZ, SNAPSHOT_HZ, ROOM } from "@game/shared";
+import { TICK_HZ, SNAPSHOT_HZ, ROOM } from "@shared/constants.js";
 
 const n = (v: string | undefined, fallback: number) => {
   const parsed = Number(v);
@@ -13,5 +13,5 @@ export const config = {
   roomCap: n(process.env.ROOM_CAP, ROOM.cap),
   corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:15173",
   botsEnabled: (process.env.BOTS_ENABLED ?? "false").toLowerCase() === "true",
-  publicUrl: process.env.PUBLIC_URL ?? "http://localhost:8080",
+  publicUrl: process.env.PUBLIC_URL ?? "http://localhost:18080",
 } as const;

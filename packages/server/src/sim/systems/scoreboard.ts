@@ -1,5 +1,5 @@
 import type { World } from "../world.js";
-import { SCOREBOARD } from "@game/shared";
+import { SCOREBOARD } from "@shared/constants.js";
 
 export const getScoreboard = (world: World) =>
   Array.from(world.players.values())

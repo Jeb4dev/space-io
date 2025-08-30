@@ -32,9 +32,9 @@ export type PlayerStats = {
   altFire?: AltFireType;
 };
 
-export type PlayerEntityState = {
-  kind: "player";
+export type EntityState = {
   id: string;
+  kind: EntityKind;
   x: number;
   y: number;
   vx: number;
@@ -42,34 +42,8 @@ export type PlayerEntityState = {
   r: number;
   hp?: number;
   maxHp?: number;
-  xp: number;
-  xpToNext: number;
-  level: number;
-  mass: number;
+  ownerId?: string; // for bullets
 };
-
-export type BulletEntityState = {
-  kind: "bullet";
-  id: string;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  r: number;
-  ownerId?: string;
-};
-
-export type PickupEntityState = {
-  kind: "pickup";
-  id: string;
-  x: number;
-  y: number;
-  vx?: number;
-  vy?: number;
-  r?: number;
-};
-
-export type EntityState = PlayerEntityState | BulletEntityState | PickupEntityState;
 
 export type PickupState = {
   id: string;

@@ -5,7 +5,7 @@ import {
   ClientJoinSchema,
   LevelChoiceSchema,
   ServerWelcome,
-} from "@game/shared";
+} from "@shared/messages.js";
 import type { World } from "../sim/world.js";
 import {
   addPlayer,
@@ -15,7 +15,7 @@ import {
   applyLevelChoice,
 } from "../sim/entities.js";
 import { config } from "../config.js";
-import { WORLD } from "@game/shared";
+import { WORLD } from "@shared/constants.js";
 import { filterName } from "../util/nameFilter.js";
 
 export const setupSocket = (io: Server, world: World) => {
@@ -57,7 +57,7 @@ export const setupSocket = (io: Server, world: World) => {
       const parsed = LevelChoiceSchema.safeParse(raw);
       if (!parsed.success) return;
       // Defensive: only accept valid choices
-      const chosen = parsed.data.chosen as import("@game/shared").PowerupChoice;
+      const chosen = parsed.data.chosen as import("@shared/types.js").PowerupChoice;
       applyLevelChoice(world, playerId, chosen);
     });
 

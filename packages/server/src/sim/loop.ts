@@ -6,7 +6,7 @@ import { processInputs, moveAndClamp } from "./entities.js";
 import { updatePickups } from "./systems/pickups.js";
 import { handleDeathsAndRespawn } from "./systems/combat.js";
 import { getScoreboard } from "./systems/scoreboard.js";
-import { BULLET } from "@game/shared";
+import { BULLET } from "@shared/constants.js";
 
 let snapshotAccumulator = 0;
 
@@ -72,9 +72,6 @@ export const ioSnapshot = (io: Server, world: World) => {
         r: op.r,
         hp: op.hp,
         maxHp: op.maxHp,
-        xp: op.xp,
-        xpToNext: op.xpToNext,
-        level: op.level
       })),
       ...Array.from(world.bullets.values()).map((b) => ({
         id: b.id,

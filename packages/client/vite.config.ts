@@ -3,7 +3,7 @@ import path from "path";
 
 export default defineConfig({
   server: {
-    port: 5173,
+    port: 15173,
     strictPort: true,
   },
   resolve: {
@@ -12,8 +12,4 @@ export default defineConfig({
       "@shared": path.resolve(__dirname, "../shared/src"),
     },
   },
-  optimizeDeps: {
-    include: ["@game/shared"]
-  },
 });
-

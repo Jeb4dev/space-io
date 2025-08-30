@@ -6,7 +6,7 @@ import type {
   PowerupChoice,
   ScoreEntry,
   WellState,
-} from "./types.ts";
+} from "./types.js";
 
 export const V2Schema = z.object({ x: z.number(), y: z.number() });
 
@@ -33,51 +33,24 @@ export const ServerWelcomeSchema = z.object({
 });
 export type ServerWelcome = z.infer<typeof ServerWelcomeSchema>;
 
-// Entity schemas for discriminated union
-const PlayerEntitySchema = z.object({
-  id: z.string(),
-  kind: z.literal("player"),
-  x: z.number(),
-  y: z.number(),
-  vx: z.number(),
-  vy: z.number(),
-  r: z.number(),
-  hp: z.number().optional(),
-  maxHp: z.number().optional(),
-  xp: z.number(),
-  xpToNext: z.number(),
-  level: z.number(),
-  mass: z.number()
-});
-
-const BulletEntitySchema = z.object({
-  id: z.string(),
-  kind: z.literal("bullet"),
-  x: z.number(),
-  y: z.number(),
-  vx: z.number(),
-  vy: z.number(),
-  r: z.number(),
-  ownerId: z.string().optional()
-});
-
-const PickupEntitySchema = z.object({
-  id: z.string(),
-  kind: z.literal("pickup"),
-  x: z.number(),
-  y: z.number(),
-  vx: z.number().optional(),
-  vy: z.number().optional(),
-  r: z.number().optional()
-});
-
-const EntitySchema = z.discriminatedUnion("kind", [PlayerEntitySchema, BulletEntitySchema, PickupEntitySchema]);
-
 export const ServerSnapshotSchema = z.object({
   tick: z.number().int().nonnegative(),
   youId: z.string(),
   acks: z.object({ seq: z.number().int().nonnegative() }),
-  entities: z.array(EntitySchema),
+  entities: z.array(
+    z.object({
+      id: z.string(),
+      kind: z.enum(["player", "bullet", "pickup"]),
+      x: z.number(),
+      y: z.number(),
+      vx: z.number(),
+      vy: z.number(),
+      r: z.number(),
+      hp: z.number().optional(),
+      maxHp: z.number().optional(),
+      ownerId: z.string().optional(),
+    }),
+  ),
   pickups: z.array(
     z.object({
       id: z.string(),

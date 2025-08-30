@@ -1,4 +1,4 @@
-import type { ClientInput, EntityState } from "@game/shared";
+import type { ClientInput, EntityState } from "@shared/messages";
 
 export class Recon {
   seq = 0;
