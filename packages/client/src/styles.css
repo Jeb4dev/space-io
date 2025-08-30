@@ -276,3 +276,89 @@ body,
   color: #666;
   opacity: 0.8;
 }
+
+/* Mobile / Touch Optimizations */
+@media (max-width: 820px), (hover: none) and (pointer: coarse) {
+  html, body, #game {
+    /* Respect safe areas (iOS notch etc) */
+    padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+  }
+
+  .hud {
+    top: calc(env(safe-area-inset-top, 0) + 6px);
+    right: calc(env(safe-area-inset-right, 0) + 6px);
+    font-size: 12px;
+  }
+  .hud .card {
+    padding: 6px 8px;
+  }
+
+  /* Move powerups to top-left to free bottom play area / thumbs */
+  .powerups-panel {
+    top: calc(env(safe-area-inset-top, 0) + 8px);
+    bottom: auto;
+    left: calc(env(safe-area-inset-left, 0) + 8px);
+    max-width: 46vw;
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+  .powerups-panel h3 { font-size: 12px; }
+
+  /* Keep bars centered but slimmer & stacked for visibility */
+  .bottom-bars {
+    bottom: calc(env(safe-area-inset-bottom, 0) + 8px);
+    gap: 4px;
+  }
+  .bar {
+    height: 10px;
+    width: 42vw; /* Slightly wider relative for readability */
+    max-width: 240px;
+  }
+
+  /* Velocity panel floats above fire button */
+  .velocity-panel {
+    right: calc(env(safe-area-inset-right, 0) + 14px);
+    bottom: calc(env(safe-area-inset-bottom, 0) + 140px);
+    padding: 6px 8px;
+    min-width: 68px;
+  }
+  .velocity-value { font-size: 16px; }
+
+  /* Enlarge touch fire area for thumb comfort */
+  .touch-fire {
+    width: 96px;
+    height: 96px;
+    right: calc(env(safe-area-inset-right, 0) + 16px);
+    bottom: calc(env(safe-area-inset-bottom, 0) + 16px);
+  }
+
+  /* Tighten modal on small screens */
+  .modal {
+    margin-top: 10vh;
+    width: min(94vw, 500px);
+    padding: 14px;
+  }
+  .powerup-choices { grid-template-columns: 1fr; }
+}
+
+/* Extra small portrait phones */
+@media (max-width: 420px) and (orientation: portrait) {
+  .bar { width: 48vw; }
+  .powerups-panel { max-width: 60vw; }
+  .velocity-panel { bottom: calc(env(safe-area-inset-bottom, 0) + 128px); }
+}
+
+/* Landscape on small devices: move bars to top to free horizontal space for controls */
+@media (max-height: 480px) and (orientation: landscape) and (hover: none) and (pointer: coarse) {
+  .bottom-bars {
+    top: calc(env(safe-area-inset-top, 0) + 6px);
+    bottom: auto;
+  }
+  .powerups-panel {
+    top: calc(env(safe-area-inset-top, 0) + 6px);
+    left: calc(env(safe-area-inset-left, 0) + 6px);
+  }
+  .velocity-panel {
+    bottom: calc(env(safe-area-inset-bottom, 0) + 16px);
+  }
+}
