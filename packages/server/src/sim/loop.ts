@@ -104,14 +104,13 @@ export const ioSnapshot = (io: Server, world: World) => {
         maxHp: op.maxHp,
         xp: op.xp,
         xpToNext: op.xpToNext,
-        // Add powerup stats for HUD display
         damage: op.damage,
+        maxSpeed: op.maxSpeed,
         accel: op.accel,
-        fireCooldownMs: op.fireCooldownMs,
         magnetRadius: op.magnetRadius,
-        shield: op.shield,
-        // Include powerup levels for accurate HUD display
+        fireCooldownMs: op.fireCooldownMs,
         powerupLevels: op.powerupLevels,
+        shield: op.shield,
       })),
       ...Array.from(world.bullets.values()).map((b) => ({
         id: b.id,

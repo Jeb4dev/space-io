@@ -67,6 +67,7 @@ export const ServerSnapshotSchema = z.object({
             Shield: z.number(),
         })
         .optional(),
+      maxSpeed: z.number().optional(),
     }),
   ),
   pickups: z.array(

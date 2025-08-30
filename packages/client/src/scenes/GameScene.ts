@@ -74,16 +74,29 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    // Preload custom ship part textures
+    // Preload custom ship part textures - all upgrade levels (0, 1, 2)
     this.load.image("raketti/body0.png", new URL("../assets/raketti/body0.png", import.meta.url).toString());
+    this.load.image("raketti/body1.png", new URL("../assets/raketti/body1.png", import.meta.url).toString());
+    this.load.image("raketti/body2.png", new URL("../assets/raketti/body2.png", import.meta.url).toString());
+
     this.load.image("raketti/wings0.png", new URL("../assets/raketti/wings0.png", import.meta.url).toString());
+    this.load.image("raketti/wings1.png", new URL("../assets/raketti/wings1.png", import.meta.url).toString());
+    this.load.image("raketti/wings2.png", new URL("../assets/raketti/wings2.png", import.meta.url).toString());
+
     this.load.image("raketti/window0.png", new URL("../assets/raketti/window0.png", import.meta.url).toString());
+    this.load.image("raketti/window1.png", new URL("../assets/raketti/window1.png", import.meta.url).toString());
+    this.load.image("raketti/window2.png", new URL("../assets/raketti/window2.png", import.meta.url).toString());
+
     this.load.image("raketti/point0.png", new URL("../assets/raketti/point0.png", import.meta.url).toString());
+    this.load.image("raketti/point1.png", new URL("../assets/raketti/point1.png", import.meta.url).toString());
+    this.load.image("raketti/point2.png", new URL("../assets/raketti/point2.png", import.meta.url).toString());
+
     this.load.image("raketti/weapon0.png", new URL("../assets/raketti/weapon0.png", import.meta.url).toString());
+    this.load.image("raketti/weapon1.png", new URL("../assets/raketti/weapon1.png", import.meta.url).toString());
+    this.load.image("raketti/weapon2.png", new URL("../assets/raketti/weapon2.png", import.meta.url).toString());
 
     // Preload heart image for HP pickups
     this.load.image("heart", new URL("../assets/muut/heart.png", import.meta.url).toString());
-    this.load.image("raketti/weapon0.png", new URL("../assets/raketti/weapon0.png", import.meta.url).toString());
     // Preload planet assets
     this.load.image("EARTH", new URL("../assets/planeetat/EARTH.png", import.meta.url).toString());
     this.load.image("JUPITER", new URL("../assets/planeetat/JUPITER.png", import.meta.url).toString());
@@ -189,18 +202,28 @@ export default class GameScene extends Phaser.Scene {
         const choice = await this.levelModal.choose(e.choices, you);
         this.net.choosePowerup(choice);
       } else if (e.type === "LevelUpApplied") {
-        // Update local player stats immediately when powerup is applied
-        console.log('LevelUpApplied event received:', e);
-        const youId = this.net.youId;
-        if (youId) {
-          const you = this.interp.get(youId);
-          if (you) {
-            console.log('Current player state before update:', you);
-            // Update the player's stats with the new values from the server
-            Object.assign(you, e.updated);
-            console.log('Player state after update:', you);
-            // Don't update HUD here - let the snapshot handler do it to avoid conflicts
-            // this.hud.setPowerups(you);
+        // Update ship textures when stats change
+        const updated = (e as any).updated;
+        const ship = this.ships.get(this.net.youId!);
+        if (ship && updated) {
+          ship.updateTextures({
+            maxHp: updated.maxHp,
+            damage: updated.damage,
+            maxSpeed: updated.maxSpeed,
+            accel: updated.accel,
+            magnetRadius: updated.magnetRadius,
+          });
+          const youId = this.net.youId;
+          if (youId) {
+            const you = this.interp.get(youId);
+            if (you) {
+              console.log('Current player state before update:', you);
+              // Update the player's stats with the new values from the server
+              Object.assign(you, e.updated);
+              console.log('Player state after update:', you);
+              // Don't update HUD here - let the snapshot handler do it to avoid conflicts
+              // this.hud.setPowerups(you);
+            }
           }
         }
       }
@@ -274,12 +297,6 @@ export default class GameScene extends Phaser.Scene {
     if (typeof (you as any).xp === "number" && typeof (you as any).xpToNext === "number") {
       this.hud.setXP((you as any).xp, (you as any).xpToNext);
     }
-
-    // Update powerups display
-    this.hud.setPowerups(you);
-
-    // Update velocity display
-    this.hud.setVelocity(you.vx || 0, you.vy || 0);
 
     // Bullets: ensure sprites now (placement each frame from interpolated entities)
     const bulletIds = new Set<string>();
