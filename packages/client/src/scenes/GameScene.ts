@@ -75,6 +75,8 @@ export default class GameScene extends Phaser.Scene {
   this.load.image("raketti/wings0.png", new URL("../assets/raketti/wings0.png", import.meta.url).toString());
   this.load.image("raketti/window0.png", new URL("../assets/raketti/window0.png", import.meta.url).toString());
   this.load.image("raketti/point0.png", new URL("../assets/raketti/point0.png", import.meta.url).toString());
+  this.load.image("raketti/weapon0.png", new URL("../assets/raketti/weapon0.png", import.meta.url).toString());
+ 
   }
 
   async create() {
