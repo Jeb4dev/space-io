@@ -6,7 +6,7 @@ export const WORLD = { w: 4000, h: 3000, outOfBoundsClamp: 20 };
 export const PLAYER = {
   radius: 18,
   mass: 1,
-  baseAccel: 500, // px/s^2
+  baseAccel: 700, // px/s^2
   baseMaxSpeed: 300, // px/s
   baseHP: 100,
   invulnMs: 2000,
@@ -42,13 +42,13 @@ export const PICKUPS = {
 };
 
 export const GRAVITY = {
-  G: 15, // tuned for game feel
-  epsilon: 1000, // avoids singularities
-  maxPull: 1000,
+  G: 10, // Reduced from 15 to make initial pull gentler
+  epsilon: 2000, // Increased to make force smoother at close range
+  maxPull: 300, // Reduced global max pull
   planetScrollSpeed: 50, // pixels per second downward movement
   wells: [
-    // seeded world layout
-    { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400, texture: "EARTH" },
+    // seeded world layout - reduced maxPull values for better balance
+    { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 400, texture: "EARTH" },
     {
       id: "sunA",
       x: 3000,
@@ -57,7 +57,7 @@ export const GRAVITY = {
       radius: 200,
       influenceRadius: 800,
       type: "sun" as const,
-      maxPull: 3800,
+      maxPull: 600, // Stronger than planets but not overwhelming
       texture: "VENUS" // Use Venus as sun-like appearance
     },
     {
@@ -68,7 +68,7 @@ export const GRAVITY = {
       radius: 110,
       influenceRadius: 500,
       type: "planet" as const,
-      maxPull: 2800,
+      maxPull: 350,
       texture: "MARS"
     },
     // { id: "holeA", x: 2100, y: 2300, mass: 6e6, radius: 110, influenceRadius: 950, type: "blackhole" as const, maxPull: 2600 }

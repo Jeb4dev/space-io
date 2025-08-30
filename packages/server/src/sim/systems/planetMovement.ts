@@ -2,13 +2,13 @@ import { GRAVITY, WORLD } from "@shared/constants.js";
 import { rndRange } from "@shared/math.js";
 import type { World } from "../world.js";
 
-// Pool of planet configurations for variety
+// Pool of planet configurations for variety - updated with balanced gravity values
 const PLANET_CONFIGS = [
-  { mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400, texture: "EARTH" },
-  { mass: 2.5e6, radius: 110, influenceRadius: 500, type: "planet" as const, maxPull: 2800, texture: "MARS" },
-  { mass: 3e6, radius: 140, influenceRadius: 650, type: "planet" as const, maxPull: 2000, texture: "JUPITER" },
-  { mass: 1.8e6, radius: 100, influenceRadius: 480, type: "planet" as const, maxPull: 1600, texture: "VENUS" },
-  { mass: 4e6, radius: 180, influenceRadius: 800, type: "sun" as const, maxPull: 3800, texture: "SATURNUS" },
+  { mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 400, texture: "EARTH" },
+  { mass: 2.5e6, radius: 110, influenceRadius: 500, type: "planet" as const, maxPull: 350, texture: "MARS" },
+  { mass: 3e6, radius: 140, influenceRadius: 650, type: "planet" as const, maxPull: 450, texture: "JUPITER" },
+  { mass: 1.8e6, radius: 100, influenceRadius: 480, type: "planet" as const, maxPull: 300, texture: "VENUS" },
+  { mass: 4e6, radius: 180, influenceRadius: 800, type: "sun" as const, maxPull: 600, texture: "SATURNUS" },
 ];
 
 let nextPlanetId = 1000; // Start high to avoid conflicts with static wells
