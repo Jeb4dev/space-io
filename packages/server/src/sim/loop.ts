@@ -72,6 +72,9 @@ export const ioSnapshot = (io: Server, world: World) => {
         r: op.r,
         hp: op.hp,
         maxHp: op.maxHp,
+        xp: op.xp,
+        xpToNext: op.xpToNext,
+        level: op.level
       })),
       ...Array.from(world.bullets.values()).map((b) => ({
         id: b.id,
