@@ -45,6 +45,7 @@ export type PlayerEntityState = {
   xp: number;
   xpToNext: number;
   level: number;
+  mass: number;
 };
 
 export type BulletEntityState = {

@@ -15,6 +15,7 @@ export type World = {
 };
 
 export type Player = {
+  mass: number;
   id: string;
   socketId: string;
   name: string;
