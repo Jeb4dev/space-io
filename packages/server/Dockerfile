@@ -20,8 +20,8 @@ COPY packages/shared packages/shared
 COPY packages/server packages/server
 
 # Compile shared, then server using the workspace TypeScript
-RUN pnpm -w exec tsc -b packages/shared packages/server
-
+RUN pnpm -w --filter @game/shared run build \
+ && pnpm -w --filter @game/server  run build
 
 # ========= Runtime =========
 FROM node:20-alpine AS runtime
