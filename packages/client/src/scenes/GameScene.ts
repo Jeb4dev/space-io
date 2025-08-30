@@ -69,10 +69,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    // Load PNG from monorepo path: packages/assets/spaceship.png
-    // (three ../ from this file: client/src/scenes -> client -> packages -> assets)
-    const shipUrl = new URL("../assets/spaceship.png", import.meta.url).toString();
-    this.load.image(SHIP_TEX_KEY, shipUrl);
+  // Preload custom ship part textures
+  this.load.image("raketti/body0.png", new URL("../assets/raketti/body0.png", import.meta.url).toString());
+  this.load.image("raketti/wings0.png", new URL("../assets/raketti/wings0.png", import.meta.url).toString());
+  this.load.image("raketti/window0.png", new URL("../assets/raketti/window0.png", import.meta.url).toString());
+  this.load.image("raketti/point0.png", new URL("../assets/raketti/point0.png", import.meta.url).toString());
   }
 
   async create() {
