@@ -6,7 +6,7 @@ import type {
   PowerupChoice,
   ScoreEntry,
   WellState,
-} from "./types.js";
+} from "./types.ts";
 
 export const V2Schema = z.object({ x: z.number(), y: z.number() });
 

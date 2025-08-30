@@ -6,7 +6,7 @@ import { processInputs, moveAndClamp } from "./entities.js";
 import { updatePickups } from "./systems/pickups.js";
 import { handleDeathsAndRespawn } from "./systems/combat.js";
 import { getScoreboard } from "./systems/scoreboard.js";
-import { BULLET } from "@shared/constants.js";
+import { BULLET } from "@game/shared";
 
 let snapshotAccumulator = 0;
 

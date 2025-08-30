@@ -7,7 +7,6 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../shared/src/*"],
       "@client/*": ["./src/*"]
     },
     "types": ["vite/client"]

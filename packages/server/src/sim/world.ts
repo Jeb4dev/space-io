@@ -1,7 +1,7 @@
-import { WORLD, GRAVITY, PICKUPS } from "@shared/constants.js";
-import type { WellState } from "@shared/types.js";
+import { WORLD, GRAVITY, PICKUPS } from "@game/shared";
+import type { WellState } from "@game/shared";
 import type { Server } from "socket.io";
-import { rndRange } from "@shared/math.js";
+import { rndRange } from "@game/shared";
 
 export type World = {
   w: number;
