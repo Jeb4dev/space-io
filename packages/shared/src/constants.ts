@@ -45,6 +45,7 @@ export const GRAVITY = {
   G: 15, // tuned for game feel
   epsilon: 1000, // avoids singularities
   maxPull: 1000,
+  planetScrollSpeed: 50, // pixels per second downward movement
   wells: [
     // seeded world layout
     { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400, texture: "/assets/planeetat/EARTH.png" },

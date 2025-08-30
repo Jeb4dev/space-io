@@ -35,6 +35,7 @@ export default class GameScene extends Phaser.Scene {
   debugWellsOn = true;
   debugFullView = false; // New debug flag for full arena view
   wellGfx!: Phaser.GameObjects.Graphics;
+  lastWellUpdateTime = 0; // Track time for client-side planet movement prediction
 
   // arena/bounds
   worldW = 4000; // overwritten by welcome
@@ -70,6 +71,13 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
+  // Preload custom ship part textures
+  this.load.image("raketti/body0.png", new URL("../assets/raketti/body0.png", import.meta.url).toString());
+  this.load.image("raketti/wings0.png", new URL("../assets/raketti/wings0.png", import.meta.url).toString());
+  this.load.image("raketti/window0.png", new URL("../assets/raketti/window0.png", import.meta.url).toString());
+  this.load.image("raketti/point0.png", new URL("../assets/raketti/point0.png", import.meta.url).toString());
+  this.load.image("raketti/weapon0.png", new URL("../assets/raketti/weapon0.png", import.meta.url).toString());
+ 
     // Preload custom ship part textures
     this.load.image("raketti/body0.png", new URL("../assets/raketti/body0.png", import.meta.url).toString());
     this.load.image("raketti/wings0.png", new URL("../assets/raketti/wings0.png", import.meta.url).toString());
@@ -77,13 +85,13 @@ export default class GameScene extends Phaser.Scene {
     this.load.image("raketti/point0.png", new URL("../assets/raketti/point0.png", import.meta.url).toString());
     // Preload heart image for HP pickups
     this.load.image("heart", new URL("../assets/muut/heart.png", import.meta.url).toString());
-    // Preload planet images
-    this.load.image("EARTH", "/assets/planeetat/EARTH.png");
-    this.load.image("MARS", "/assets/planeetat/MARS.png");
-    this.load.image("SATURNUS", "/assets/planeetat/SATURNUS.png");
-    this.load.image("NEPTUNUS", "/assets/planeetat/NEPTUNUS.png");
-    this.load.image("JUPITER", "/assets/planeetat/JUPITER.png");
-    this.load.image("VENUS", "/assets/planeetat/VENUS.png");
+        this.load.image("raketti/weapon0.png", new URL("../assets/raketti/weapon0.png", import.meta.url).toString());
+        this.load.image("EARTH", "/assets/planeetat/EARTH.png");
+        this.load.image("MARS", "/assets/planeetat/MARS.png");
+        this.load.image("SATURNUS", "/assets/planeetat/SATURNUS.png");
+        this.load.image("NEPTUNUS", "/assets/planeetat/NEPTUNUS.png");
+        this.load.image("JUPITER", "/assets/planeetat/JUPITER.png");
+        this.load.image("VENUS", "/assets/planeetat/VENUS.png");
   }
 
   async create() {
@@ -196,7 +204,35 @@ export default class GameScene extends Phaser.Scene {
 
   onSnapshot(s: ServerSnapshot) {
     this.interp.push(s.entities);
+
+    // Store previous wells for interpolation
+    const prevWells = this.wells;
     this.wells = s.wells;
+
+    // If we have previous wells, set up interpolation
+    if (prevWells.length > 0) {
+      for (let i = 0; i < this.wells.length && i < prevWells.length; i++) {
+        const curr = this.wells[i];
+        const prev = prevWells[i];
+
+        // Check if this is the same planet (by ID) and if the movement is reasonable
+        const isSamePlanet = curr.id === prev.id;
+        const movementDistance = Math.hypot(curr.x - prev.x, curr.y - prev.y);
+        const maxReasonableMovement = 200; // Max pixels a planet should move between snapshots
+
+        // Only interpolate if it's the same planet and movement is reasonable
+        if (isSamePlanet && movementDistance < maxReasonableMovement) {
+          (curr as any)._prevX = prev.x;
+          (curr as any)._prevY = prev.y;
+          (curr as any)._interpAlpha = 0;
+        } else {
+          // Don't interpolate for respawned planets or large jumps
+          (curr as any)._prevX = curr.x;
+          (curr as any)._prevY = curr.y;
+          (curr as any)._interpAlpha = 1;
+        }
+      }
+    }
 
     const you = s.entities.find((e) => e.id === (this.net.youId || s.youId));
     if (!you) return;
@@ -320,7 +356,10 @@ export default class GameScene extends Phaser.Scene {
 
       // Parallax + HUD from interpolated you (dt for framerate independence)
       if (!this.debugFullView) {
-        this.parallax.update(youI.vx, youI.vy, delta);
+        this.parallax.update(youI.vx, youI.vy, delta, this.cameras.main.zoom);
+      } else {
+        // In debug mode, still update parallax but with camera zoom for proper scaling
+        this.parallax.update(youI.vx, youI.vy, delta, this.cameras.main.zoom);
       }
       if (youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
     }
@@ -343,6 +382,43 @@ export default class GameScene extends Phaser.Scene {
         const x = prev.x + (cur.x - prev.x) * this.pickAlpha;
         const y = prev.y + (cur.y - prev.y) * this.pickAlpha;
         this.pickups.place(id, cx + (x - youI.x), cy + (y - youI.y));
+      }
+    }
+
+    // Client-side planet movement prediction - move planets independently of server updates
+    // This ensures smooth constant movement regardless of player position or server lag
+    const currentTime = performance.now();
+    if (this.lastWellUpdateTime === 0) {
+      this.lastWellUpdateTime = currentTime;
+    }
+
+    const timeDelta = (currentTime - this.lastWellUpdateTime) / 1000; // Convert to seconds
+    const planetScrollSpeed = 50; // Match server GRAVITY.planetScrollSpeed
+
+    // Move planets down at constant speed on client side
+    for (const well of this.wells) {
+      if (well.type === "planet" || well.type === "sun") {
+        well.y += planetScrollSpeed * timeDelta;
+      }
+    }
+
+    this.lastWellUpdateTime = currentTime;
+
+    // Interpolate wells (planets) between snapshots for smooth movement
+    // This is now only used for correction, not primary movement
+    for (const well of this.wells) {
+      const wellAny = well as any;
+      if (wellAny._prevX !== undefined && wellAny._prevY !== undefined) {
+        wellAny._interpAlpha = Math.min(1, wellAny._interpAlpha + delta / (1000 / SNAPSHOT_HZ));
+
+        // Only apply small corrections, don't override the client-side prediction
+        const serverX = wellAny._prevX + (well.x - wellAny._prevX) * wellAny._interpAlpha;
+        const serverY = wellAny._prevY + (well.y - wellAny._prevY) * wellAny._interpAlpha;
+
+        // Apply gentle correction if there's a significant difference
+        const correctionStrength = 0.1; // 10% correction per frame
+        well.x = well.x + (serverX - well.x) * correctionStrength;
+        // Don't correct Y position as we're predicting movement
       }
     }
 

@@ -58,8 +58,9 @@ export default class Parallax {
    * @param vx world vx (px/sec)
    * @param vy world vy (px/sec)
    * @param dtMs optional frame delta; if omitted we assume ~60 FPS
+   * @param cameraZoom camera zoom level for scaling adjustments
    */
-  update(vx: number, vy: number, dtMs: number = 1000 / 60) {
+  update(vx: number, vy: number, dtMs: number = 1000 / 60, cameraZoom: number = 1) {
     // Exponential moving average to kill jitter
     const a = 1 - this.smoothing; // blend factor
     this.vxE += (vx - this.vxE) * a;
@@ -67,12 +68,19 @@ export default class Parallax {
 
     const dt = Math.max(0, dtMs) / 1000;
 
-    // Very gentle parallax; camera is fixed, so we offset tiles opposite velocity
-    this.far.tilePositionX += this.vxE * this.farFactor * dt;
-    this.far.tilePositionY += this.vyE * this.farFactor * dt;
+    // Adjust parallax speed based on camera zoom
+    const zoomAdjustment = 1 / cameraZoom;
 
-    this.near.tilePositionX += this.vxE * this.nearFactor * dt;
-    this.near.tilePositionY += this.vyE * this.nearFactor * dt;
+    // Very gentle parallax; camera is fixed, so we offset tiles opposite velocity
+    this.far.tilePositionX += this.vxE * this.farFactor * dt * zoomAdjustment;
+    this.far.tilePositionY += this.vyE * this.farFactor * dt * zoomAdjustment;
+
+    this.near.tilePositionX += this.vxE * this.nearFactor * dt * zoomAdjustment;
+    this.near.tilePositionY += this.vyE * this.nearFactor * dt * zoomAdjustment;
+
+    // Scale the star tiles based on camera zoom
+    this.far.setScale(zoomAdjustment);
+    this.near.setScale(zoomAdjustment);
   }
 }
 
