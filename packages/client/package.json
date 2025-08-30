@@ -3,18 +3,24 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "concurrently -n shared,client \"pnpm --filter @game/shared dev\" \"vite\"",
+    "build": "pnpm --filter @game/shared build && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@game/shared": "workspace:*",
+    "@socket.io/component-emitter": "3",
+    "engine.io-client": "^6.6.3",
+    "engine.io-parser": "^5.2.3",
     "phaser": "^3.80.1",
-    "socket.io-client": "^4.7.5"
+    "socket.io-client": "^4.7.5",
+    "socket.io-parser": "^3.3.4"
   },
   "devDependencies": {
-    "typescript": "^5.5.4",
+    "concurrently": "^9.0.0",
+    "typescript": "^5.9.2",
     "vite": "^5.3.4"
-  }
+  },
+  "packageManager": "pnpm@10.15.0+sha512.486ebc259d3e999a4e8691ce03b5cac4a71cbeca39372a9b762cb500cfdf0873e2cb16abe3d951b1ee2cf012503f027b98b6584e4df22524e0c7450d9ec7aa7b"
 }

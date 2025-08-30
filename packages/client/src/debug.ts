@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
-import { GRAVITY } from "@shared/constants";
-import type { WellState } from "@shared/types";
+import { GRAVITY } from "@game/shared";
+import type { WellState } from "@game/shared";
 
 /** Minimal context those debug drawers need (structural typing matches GameScene). */
 export interface DebugCtx {
