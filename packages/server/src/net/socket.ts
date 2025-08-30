@@ -13,6 +13,7 @@ import {
   setPlayerName,
   queueInput,
   applyLevelChoice,
+  giveXP,
 } from "../sim/entities.js";
 import { config } from "../config.js";
 import { WORLD } from "@shared/constants.js";
@@ -55,12 +56,22 @@ export const setupSocket = (io: Server, world: World) => {
       queueInput(world, playerId, parsed.data);
     });
 
-    socket.on("choosePowerup", (raw) => {
-      const parsed = LevelChoiceSchema.safeParse(raw);
+    socket.on("choosePowerup", (data: unknown) => {
+      const parsed = LevelChoiceSchema.safeParse(data);
       if (!parsed.success) return;
-      // Defensive: only accept valid choices
-      const chosen = parsed.data.chosen as import("@shared/types.js").PowerupChoice;
+      const { chosen } = parsed.data;
       applyLevelChoice(world, playerId, chosen);
+    });
+
+    // Debug command handler for adding XP (T key)
+    socket.on("debug", (data: any) => {
+      if (data.type === "addXP" && typeof data.amount === "number") {
+        const player = world.players.get(playerId);
+        if (player) {
+          console.log(`Debug: Adding ${data.amount} XP to player ${player.name} (${playerId})`);
+          giveXP(world, player, data.amount);
+        }
+      }
     });
 
     socket.on("disconnect", () => {

@@ -5,6 +5,7 @@ export class HUD {
   bars: Bars;
   board: HTMLDivElement;
   powerupsPanel: HTMLDivElement;
+  velocityPanel: HTMLDivElement;
 
   constructor() {
     this.root = document.createElement("div");
@@ -32,6 +33,16 @@ export class HUD {
     this.powerupsPanel.innerHTML = "<h3>Powerups</h3><div class='powerups-list'></div>";
     document.body.appendChild(this.powerupsPanel);
 
+    // Create velocity panel in bottom left corner
+    this.velocityPanel = document.createElement("div");
+    this.velocityPanel.className = "velocity-panel";
+    this.velocityPanel.innerHTML = `
+      <div class="velocity-label">Speed</div>
+      <div class="velocity-value">0</div>
+      <div class="velocity-unit">px/s</div>
+    `;
+    document.body.appendChild(this.velocityPanel);
+
     this.bars = {
       hp: hp.firstElementChild as HTMLDivElement,
       xp: xp.firstElementChild as HTMLDivElement,
@@ -47,6 +58,26 @@ export class HUD {
   setXP(xp: number, toNext: number) {
     const pct = Math.max(0, Math.min(1, xp / toNext)) * 100;
     this.bars.xp.style.width = `${pct}%`;
+  }
+
+  setVelocity(vx: number, vy: number) {
+    const speed = Math.hypot(vx, vy);
+    const speedRounded = Math.round(speed);
+    const valueElement = this.velocityPanel.querySelector('.velocity-value') as HTMLDivElement;
+    if (valueElement) {
+      valueElement.textContent = speedRounded.toString();
+
+      // Add color coding based on speed
+      if (speed < 50) {
+        valueElement.style.color = '#4caf50'; // Green for slow
+      } else if (speed < 150) {
+        valueElement.style.color = '#ffeb3b'; // Yellow for medium
+      } else if (speed < 250) {
+        valueElement.style.color = '#ff9800'; // Orange for fast
+      } else {
+        valueElement.style.color = '#f44336'; // Red for very fast
+      }
+    }
   }
 
   setPowerups(stats: any) {
@@ -65,22 +96,34 @@ export class HUD {
   }
 
   private calculatePowerupLevels(stats: any) {
-    // Base stats to calculate levels from
-    const baseDamage = 12;
-    const baseFireRate = 220;
-    const baseAccel = 700;
-    const baseMaxSpeed = 300;
-    const baseMaxHp = 100;
-    const baseMagnet = 100;
+    // Use the exact same base values as the server
+    const baseDamage = 12;     // BULLET.baseDamage
+    const baseFireRate = 220;  // BULLET.cooldownMs
+    const baseAccel = 700;     // PLAYER.baseAccel
+    const baseMaxHp = 100;     // PLAYER.baseHP
+    const baseMagnet = 100;    // PICKUPS.magnetBaseRadius
 
+    // Safely access stats with fallbacks
+    const maxHp = stats.maxHp || baseMaxHp;
+    const damage = stats.damage || baseDamage;
+    const accel = stats.accel || baseAccel;
+    const fireCooldownMs = stats.fireCooldownMs || baseFireRate;
+    const magnetRadius = stats.magnetRadius || baseMagnet;
+    const shield = stats.shield || 0;
+
+    // Debug logging to see what we're getting
+    console.log('Player stats received:', stats);
+    console.log('Calculated values:', { maxHp, damage, accel, fireCooldownMs, magnetRadius, shield });
+
+    // Use the ACTUAL server upgrade amounts for level calculations
     return [
-      { name: "Hull", level: Math.round((stats.maxHp - baseMaxHp) / 20) + 1 },
-      { name: "Damage", level: Math.round((stats.damage - baseDamage) / 3) + 1 },
-      { name: "Engine", level: Math.round((stats.accel - baseAccel) / 100) + 1 },
-      { name: "FireRate", level: Math.round((baseFireRate - stats.fireCooldownMs) / 30) + 1 },
-      { name: "Magnet", level: Math.round((stats.magnetRadius - baseMagnet) / 25) + 1 },
-      { name: "Shield", level: Math.round(stats.shield / 10) + 1 },
-    ].map(p => ({ ...p, level: Math.max(1, Math.min(5, p.level)) }));
+      { name: "Hull", level: Math.max(1, Math.min(5, Math.round((maxHp - baseMaxHp) / 20) + 1)) },
+      { name: "Damage", level: Math.max(1, Math.min(5, Math.round((damage - baseDamage) / 4) + 1)) }, // Server uses +4
+      { name: "Engine", level: Math.max(1, Math.min(5, Math.round((accel - baseAccel) / 80) + 1)) }, // Server uses +80
+      { name: "FireRate", level: Math.max(1, Math.min(5, Math.round((baseFireRate - fireCooldownMs) / 25) + 1)) }, // Server uses -25
+      { name: "Magnet", level: Math.max(1, Math.min(5, Math.round((magnetRadius - baseMagnet) / 30) + 1)) }, // Server uses +30
+      { name: "Shield", level: Math.max(1, Math.min(5, Math.round(shield / 10) + 1)) },
+    ];
   }
 
   setScoreboard(entries: Array<{ name: string; score: number; level: number }>) {

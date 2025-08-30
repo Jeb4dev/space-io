@@ -74,50 +74,59 @@ export class LevelUpModal {
       ];
     }
 
-    // Calculate current levels based on stats
+    // Base stats to calculate levels from - match server exactly
     const baseDamage = 12;
     const baseFireRate = 220;
     const baseAccel = 700;
     const baseMaxHp = 100;
     const baseMagnet = 100;
 
-    const hullLevel = Math.max(1, Math.min(5, Math.round((stats.maxHp - baseMaxHp) / 20) + 1));
-    const damageLevel = Math.max(1, Math.min(5, Math.round((stats.damage - baseDamage) / 3) + 1));
-    const engineLevel = Math.max(1, Math.min(5, Math.round((stats.accel - baseAccel) / 100) + 1));
-    const fireRateLevel = Math.max(1, Math.min(5, Math.round((baseFireRate - stats.fireCooldownMs) / 30) + 1));
-    const magnetLevel = Math.max(1, Math.min(5, Math.round((stats.magnetRadius - baseMagnet) / 25) + 1));
-    const shieldLevel = Math.max(1, Math.min(5, Math.round(stats.shield / 10) + 1));
+    // Safely access stats with fallbacks - use the same logic as HUD
+    const maxHp = stats.maxHp || baseMaxHp;
+    const damage = stats.damage || baseDamage;
+    const accel = stats.accel || baseAccel;
+    const fireCooldownMs = stats.fireCooldownMs || baseFireRate;
+    const magnetRadius = stats.magnetRadius || baseMagnet;
+    const shield = stats.shield || 0;
+
+    // Use ACTUAL server upgrade amounts for level calculations
+    const hullLevel = Math.max(1, Math.min(5, Math.round((maxHp - baseMaxHp) / 20) + 1));
+    const damageLevel = Math.max(1, Math.min(5, Math.round((damage - baseDamage) / 4) + 1)); // Server uses +4
+    const engineLevel = Math.max(1, Math.min(5, Math.round((accel - baseAccel) / 80) + 1)); // Server uses +80
+    const fireRateLevel = Math.max(1, Math.min(5, Math.round((baseFireRate - fireCooldownMs) / 25) + 1)); // Server uses -25
+    const magnetLevel = Math.max(1, Math.min(5, Math.round((magnetRadius - baseMagnet) / 30) + 1)); // Server uses +30
+    const shieldLevel = Math.max(1, Math.min(5, Math.round(shield / 10) + 1));
 
     return [
       {
         family: "Hull" as const,
         currentLevel: hullLevel,
-        desc: `+20 HP (Current: ${stats.maxHp} HP)`
+        desc: `+20 HP (Current: ${maxHp} HP)`
       },
       {
         family: "Damage" as const,
         currentLevel: damageLevel,
-        desc: `+3 damage per bullet (Current: ${stats.damage} damage)`
+        desc: `+4 damage per bullet (Current: ${damage} damage)` // Updated to match server
       },
       {
         family: "Engine" as const,
         currentLevel: engineLevel,
-        desc: `+100 acceleration (Current: ${stats.accel})`
+        desc: `+80 acceleration (Current: ${accel})` // Updated to match server
       },
       {
         family: "FireRate" as const,
         currentLevel: fireRateLevel,
-        desc: `-30ms firing cooldown (Current: ${stats.fireCooldownMs}ms)`
+        desc: `-25ms firing cooldown (Current: ${fireCooldownMs}ms)` // Updated to match server
       },
       {
         family: "Magnet" as const,
         currentLevel: magnetLevel,
-        desc: `+25 pickup radius (Current: ${stats.magnetRadius})`
+        desc: `+30 pickup radius (Current: ${magnetRadius})` // Updated to match server
       },
       {
         family: "Shield" as const,
         currentLevel: shieldLevel,
-        desc: `+10 shield points (Current: ${stats.shield})`
+        desc: `+10 shield points (Current: ${shield})`
       },
     ].filter(option => option.currentLevel < 5); // Only show upgradeable powerups
   }

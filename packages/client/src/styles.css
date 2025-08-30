@@ -9,6 +9,7 @@ body,
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  cursor: crosshair;
 }
 
 .ui-overlay {
@@ -236,4 +237,42 @@ body,
   font-size: 13px;
   color: #d7e0ff;
   line-height: 1.4;
+}
+
+/* Velocity Panel - Bottom Right Corner */
+.velocity-panel {
+  position: fixed;
+  right: 20px;
+  bottom: 50px;
+  background: rgba(10, 12, 18, 0.9);
+  color: #d7e0ff;
+  border: 1px solid #2a3350;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+  min-width: 80px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+}
+
+.velocity-label {
+  font-size: 11px;
+  color: #8ac6ff;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.velocity-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #e6ecff;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.velocity-unit {
+  font-size: 10px;
+  color: #666;
+  opacity: 0.8;
 }

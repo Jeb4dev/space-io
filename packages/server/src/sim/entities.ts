@@ -5,7 +5,7 @@ import type { World, Player, Bullet, Pickup } from "./world.js";
 import { clamp, dist2, rndRange } from "@shared/math.js";
 import { ioSnapshot } from "./loop.js";
 import { removeBot } from "./systems/bots.js";
-import type { PowerupChoice, PowerupFamily } from "@shared/types.js";
+import type { PowerupChoice, PowerupFamily, AltFireType } from "@shared/types.js";
 
 export const addPlayer = (
   world: World,
@@ -94,6 +94,19 @@ export const processInputs = (world: World, now: number) => {
 
 export const xpForLevel = (level: number) => Math.floor(POWERUPS.xpBase * Math.pow(level, 1.4));
 
+export const levelUp = (world: World, playerId: string) => {
+  const player = world.players.get(playerId);
+  if (!player) return;
+
+  // Force level up by setting XP to next level requirement
+  player.xp = player.xpToNext;
+  player.level++;
+  player.xp = 0; // Reset XP for next level
+  player.xpToNext = xpForLevel(player.level + 1);
+  player.pendingOffer = true;
+  sendOffer(world, player);
+};
+
 export const giveXP = (world: World, p: Player, value: number) => {
   p.xp += value;
   p.score += value;
@@ -112,7 +125,11 @@ const sendOffer = (world: World, p: Player) => {
   socket?.emit("event", { type: "LevelUpOffer", choices });
 };
 
-export const applyLevelChoice = (world: World, id: string, choice: PowerupChoice) => {
+export const applyLevelChoice = (
+  world: World,
+  id: string,
+  choice: { family: PowerupFamily | "AltFire"; tier?: number; alt?: AltFireType }
+) => {
   const p = world.players.get(id);
   if (!p || !p.pendingOffer) return;
   if (choice.family === "AltFire" && p.level >= 10 && choice.alt) {

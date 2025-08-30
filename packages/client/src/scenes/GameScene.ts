@@ -155,6 +155,14 @@ export default class GameScene extends Phaser.Scene {
       Phaser.Input.Keyboard.KeyCodes.SPACE,
     ) as Phaser.Input.Keyboard.Key;
 
+    // Debug key for testing XP - T key gives +25 XP
+    this.input.keyboard?.on("keydown-T", () => {
+      if (this.net.youId) {
+        // Send a debug command to the server to add XP
+        this.net.socket.emit("debug", { type: "addXP", amount: 25 });
+      }
+    });
+
     // Mobile thrust: hold touch to thrust; release to stop
     this.input.on("pointerdown", () => {
       if (!isDesktop) this.isThrusting = true;
@@ -254,6 +262,9 @@ export default class GameScene extends Phaser.Scene {
 
     // Update powerups display
     this.hud.setPowerups(you);
+
+    // Update velocity display
+    this.hud.setVelocity(you.vx || 0, you.vy || 0);
 
     // Bullets: ensure sprites now (placement each frame from interpolated entities)
     const bulletIds = new Set<string>();
