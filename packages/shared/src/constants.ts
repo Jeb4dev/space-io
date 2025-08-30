@@ -57,7 +57,7 @@ export const GRAVITY = {
       influenceRadius: 800,
       type: "sun" as const,
       maxPull: 600,
-      texture: "VENUS"
+      texture: "JUPITER"
     },
     {
       id: "marsA",
@@ -70,7 +70,39 @@ export const GRAVITY = {
       maxPull: 350,
       texture: "MARS"
     },
-    // { id: "holeA", x: 2100, y: 2300, mass: 6e6, radius: 110, influenceRadius: 950, type: "blackhole" as const, maxPull: 2600 }
+    {
+      id: "marsC",
+      x: 3000,
+      y: 1800,
+      mass: 2.5e5,
+      radius: 80,
+      influenceRadius: 150,
+      type: "planet" as const,
+      maxPull: 50,
+      texture: "NEPTUNUS"
+    },
+    {
+      id: "marsB",
+      x: 600,
+      y: 1000,
+      mass: 2.5e5,
+      radius: 80,
+      influenceRadius: 150,
+      type: "planet" as const,
+      maxPull: 50,
+      texture: "SATURNUS"
+    },
+    {
+      id: "marsD",
+      x: 2400,
+      y: 1800,
+      mass: 2.5e5,
+      radius: 80,
+      influenceRadius: 150,
+      type: "planet" as const,
+      maxPull: 50,
+      texture: "VENUS"
+    },
   ],
   sunHeatDps: 18,
   blackHoleEdgeDps: 40,
