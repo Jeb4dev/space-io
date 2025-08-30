@@ -91,13 +91,15 @@ export class HUD {
     let list: { name: string; level: number; max: number }[] = [];
 
     if (serverLevels) {
-      list = families.map(name => ({ name, level: serverLevels[name] ?? 0, max: 5 }));
+      // Add 1 to display level since server uses 0-based but UI should show 1-based
+      list = families.map(name => ({ name, level: (serverLevels[name] ?? 0) + 1, max: 5 }));
     } else {
       // Fallback to calculation (legacy)
       const calc = this.calculatePowerupLevels(stats);
       const calcMap: Record<string, number> = {};
       for (const c of calc) calcMap[c.name] = c.level;
-      list = families.map(name => ({ name, level: calcMap[name] ?? 0, max: 5 }));
+      // Add 1 to display level since calculation gives 0-based but UI should show 1-based
+      list = families.map(name => ({ name, level: (calcMap[name] ?? 0) + 1, max: 5 }));
     }
 
     // Build HTML (always show all families)

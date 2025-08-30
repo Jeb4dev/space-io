@@ -130,7 +130,32 @@ export const giveXP = (world: World, p: Player, value: number) => {
 
 const sendOffer = (world: World, p: Player) => {
   const choices = rollChoices(p);
+
+  // If no choices available, don't show level up modal at all
+  if (choices.length === 0) {
+    p.pendingOffer = false;
+    return;
+  }
+
   const socket = world.io?.sockets.sockets.get(p.socketId);
+  if (!p.socketId) {
+    // Bot: pick a choice automatically (heuristic: lowest current level; fallback first)
+    const scored = choices.map(c => {
+      // current level is (tier - 1) for normal powerups; AltFire treat as big negative to encourage unlock once eligible
+      const currentLevel = c.family === 'AltFire' ? -1 : (c.tier ?? 1) - 1;
+      return { choice: c, currentLevel };
+    });
+    // Prefer AltFire if available and level high enough; else lowest current level, tie-break randomly
+    let pick = scored.find(s => s.choice.family === 'AltFire')?.choice;
+    if (!pick) {
+      const minLevel = Math.min(...scored.map(s => s.currentLevel));
+      const lowest = scored.filter(s => s.currentLevel === minLevel).map(s => s.choice);
+      pick = lowest[Math.floor(Math.random() * lowest.length)];
+    }
+    // Apply selection directly
+    applyLevelChoice(world, p.id, { family: pick.family, tier: pick.tier, alt: pick.alt });
+    return;
+  }
   socket?.emit("event", { type: "LevelUpOffer", choices });
 };
 
