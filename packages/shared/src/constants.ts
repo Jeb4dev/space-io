@@ -42,23 +42,34 @@ export const PICKUPS = {
 };
 
 export const GRAVITY = {
-  G: 0, // tuned for game feel
-  epsilon: 0, // avoids singularities
-  maxPull: 0,
+  G: 100_000, // tuned for game feel
+  epsilon: 1000, // avoids singularities
+  maxPull: 1000,
   wells: [
     // seeded world layout
-    // { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400 },
+    { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400 },
     {
       id: "sunA",
       x: 3000,
       y: 700,
       mass: 4e6,
-      radius: 160,
+      radius: 200,
       influenceRadius: 800,
       type: "sun" as const,
-      maxPull: 2000,
+      maxPull: 3800,
     },
-    // { id: "holeA", x: 2100, y: 2300, mass: 6e6, radius: 110, influenceRadius: 950, type: "blackhole" as const, maxPull: 2600 }
+    {
+      id: "marsA",
+      x: 1200,
+      y: 1800,
+      mass: 2.5e6,
+      radius: 110,
+      influenceRadius: 500,
+      type: "planet" as const,
+      maxPull: 2800,
+      texture: "planeetat/MARS.png"
+    },
+    { id: "holeA", x: 2100, y: 2300, mass: 6e6, radius: 110, influenceRadius: 950, type: "blackhole" as const, maxPull: 2600 }
   ],
   sunHeatDps: 18,
   blackHoleEdgeDps: 40,

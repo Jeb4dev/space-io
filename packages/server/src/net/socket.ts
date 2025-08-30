@@ -16,6 +16,7 @@ import {
 } from "../sim/entities.js";
 import { config } from "../config.js";
 import { WORLD } from "@shared/constants.js";
+import { randSafeSpawn } from "../sim/world.js";
 import { filterName } from "../util/nameFilter.js";
 
 export const setupSocket = (io: Server, world: World) => {
@@ -25,10 +26,11 @@ export const setupSocket = (io: Server, world: World) => {
       return;
     }
     const playerId = nanoid();
+    const spawnPos = randSafeSpawn(world);
     const player = addPlayer(
       world,
       playerId,
-      { x: WORLD.w * 0.1 + Math.random() * 100, y: WORLD.h * 0.5 },
+      spawnPos,
       socket.id,
     );
 

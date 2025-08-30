@@ -33,6 +33,7 @@ export default class GameScene extends Phaser.Scene {
 
   wells: WellState[] = [];
   debugWellsOn = true;
+  debugFullView = false; // New debug flag for full arena view
   wellGfx!: Phaser.GameObjects.Graphics;
 
   // arena/bounds
@@ -95,6 +96,33 @@ export default class GameScene extends Phaser.Scene {
       this.wellGfx.clear();
     });
 
+    // Debug key "I" to toggle full arena view
+    this.input.keyboard?.on("keydown-I", () => {
+      this.debugFullView = !this.debugFullView;
+      if (this.debugFullView) {
+        // Set camera to show entire arena
+        const scaleX = this.scale.width / this.worldW;
+        const scaleY = this.scale.height / this.worldH;
+        const scale = Math.min(scaleX, scaleY) * 0.9; // 0.9 for some padding
+        this.cameras.main.setZoom(scale);
+
+        // Center camera on arena center, but offset by player position to maintain relative positioning
+        const youI = this.interp.get(this.net.youId || "") ?? this.interp.current.get(this.net.youId || "");
+        if (youI) {
+          // Calculate offset from arena center to keep player entities in correct relative positions
+          const arenaCenterX = this.worldW / 2;
+          const arenaCenterY = this.worldH / 2;
+          this.cameras.main.centerOn(arenaCenterX - youI.x, arenaCenterY - youI.y);
+        } else {
+          this.cameras.main.centerOn(0, 0);
+        }
+      } else {
+        // Reset camera to normal view - center on screen center
+        this.cameras.main.setZoom(1);
+        this.cameras.main.centerOn(this.scale.width / 2, this.scale.height / 2);
+      }
+    });
+
     // Touch FIRE button (mobile)
     this.touchFireBtn = document.createElement("div");
     this.touchFireBtn.className = "touch-fire";
@@ -148,10 +176,13 @@ export default class GameScene extends Phaser.Scene {
     // Ensure your ship exists immediately (in case no snapshot yet)
     const youId = this.net.youId!;
     if (!this.ships.has(youId)) {
-      const ship = new Ship(this, SHIP_TEX_KEY, { scale: 1, ringRadius: 18, showNose: true });
-      ship.sprite.setDepth(1000);
-      ship.ring.setDepth(1001);
-      ship.setTint(SELF_TINT); // remove this if your PNG is already colored as desired
+      const ship = new Ship(this, { scale: 0.03, ringRadius: 18, showNose: true });
+      ship.body.setDepth(1000);
+      ship.wings.setDepth(1001);
+      ship.window.setDepth(1002);
+      ship.point.setDepth(1003);
+      ship.ring.setDepth(1004);
+      ship.setTint(SELF_TINT);
       this.ships.set(youId, ship);
     }
   }
@@ -164,7 +195,7 @@ export default class GameScene extends Phaser.Scene {
     if (!you) return;
 
     if (!this.ships.has(you.id)) {
-      const me = new Ship(this, SHIP_TEX_KEY, { scale: 1, ringRadius: 18, showNose: true });
+      const me = new Ship(this, { scale: 0.03, ringRadius: 18, showNose: true });
       me.setTint(SELF_TINT);
       this.ships.set(you.id, me);
     }
@@ -200,7 +231,7 @@ export default class GameScene extends Phaser.Scene {
     for (const e of s.entities) {
       if (e.kind !== "player") continue;
       if (!this.ships.has(e.id)) {
-        const ship = new Ship(this, SHIP_TEX_KEY, { scale: 1, ringRadius: 18, showNose: true });
+        const ship = new Ship(this, { scale: 0.03, ringRadius: 18, showNose: true });
         ship.setTint(e.id === you.id ? SELF_TINT : OTHER_TINT);
         this.ships.set(e.id, ship);
       }
@@ -281,7 +312,9 @@ export default class GameScene extends Phaser.Scene {
       }
 
       // Parallax + HUD from interpolated you (dt for framerate independence)
-      this.parallax.update(youI.vx, youI.vy, delta);
+      if (!this.debugFullView) {
+        this.parallax.update(youI.vx, youI.vy, delta);
+      }
       if (youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
     }
 
