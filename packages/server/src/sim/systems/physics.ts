@@ -17,8 +17,34 @@ export const applyGravity = (world: World, dt: number) => {
       p.vy += ay * dt;
 
       // heat / edge damage cones
-      if (w.type === "sun" && d < w.radius + 60) p.hp -= GRAVITY.sunHeatDps * dt;
-      if (w.type === "blackhole" && d < w.radius + 40) p.hp -= GRAVITY.blackHoleEdgeDps * dt;
+      if (w.type === "sun" && d < w.radius + 60) {
+        const prevHp = p.hp;
+        p.hp -= GRAVITY.sunHeatDps * dt;
+        if (prevHp > 0 && p.hp <= 0) {
+          p.deadUntil = Date.now() + 500;
+          world.io?.emit("event", {
+            type: "Kill",
+            killerId: null, // Environmental death
+            victimId: p.id,
+            x: p.x,
+            y: p.y,
+          });
+        }
+      }
+      if (w.type === "blackhole" && d < w.radius + 40) {
+        const prevHp = p.hp;
+        p.hp -= GRAVITY.blackHoleEdgeDps * dt;
+        if (prevHp > 0 && p.hp <= 0) {
+          p.deadUntil = Date.now() + 500;
+          world.io?.emit("event", {
+            type: "Kill",
+            killerId: null, // Environmental death
+            victimId: p.id,
+            x: p.x,
+            y: p.y,
+          });
+        }
+      }
       if (w.type === "planet" && d < w.radius + p.r) {
         // hard collision bounce
         const nx = dx / d,
@@ -97,6 +123,17 @@ export const bulletHits = (world: World, dt: number, now: number) => {
         if (!b.pierce) toRemove.push(b.id);
         if (p.hp <= 0) {
           p.deadUntil = now + 500;
+          // Emit kill event for explosion effect
+          const socket = world.io?.sockets.sockets.get(p.socketId);
+          if (socket) {
+            world.io?.emit("event", {
+              type: "Kill",
+              killerId: b.ownerId,
+              victimId: p.id,
+              x: p.x,
+              y: p.y,
+            });
+          }
         }
         break;
       }

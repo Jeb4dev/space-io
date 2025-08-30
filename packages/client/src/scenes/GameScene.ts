@@ -196,7 +196,12 @@ export default class GameScene extends Phaser.Scene {
     const connectP = this.net.connect(import.meta.env.VITE_SERVER_URL || "http://localhost:8080");
 
     this.net.onEvent(async (e) => {
-      if (e.type === "LevelUpOffer") {
+      if (e.type === "Kill") {
+        // Create explosion effect at death location
+        this.createExplosion(e.x, e.y);
+        // Make the victim ship fade/blink
+        this.makeShipDeathEffect(e.victimId);
+      } else if (e.type === "LevelUpOffer") {
         // Get current player stats to pass to modal
         const you = this.interp.get(this.net.youId || "");
         const choice = await this.levelModal.choose(e.choices, you);
@@ -544,5 +549,107 @@ export default class GameScene extends Phaser.Scene {
         }
       }
     }
+  }
+
+  /** Create explosion effect at world coordinates */
+  createExplosion(worldX: number, worldY: number) {
+    // Convert world coordinates to screen coordinates
+    const youI = this.interp.get(this.net.youId || "");
+    if (!youI) return;
+
+    const cx = this.scale.width / 2;
+    const cy = this.scale.height / 2;
+    const sx = cx + (worldX - youI.x);
+    const sy = cy + (worldY - youI.y);
+
+    // Create explosion particles
+    const particleCount = 12;
+    const explosionRadius = 60;
+    
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (i / particleCount) * Math.PI * 2;
+      const speed = 200 + Math.random() * 100;
+      const distance = 20 + Math.random() * explosionRadius;
+      
+      // Create particle
+      const particle = this.add.circle(sx, sy, 3 + Math.random() * 4, 0xff6600)
+        .setDepth(1000);
+      
+      // Animate particle
+      this.tweens.add({
+        targets: particle,
+        x: sx + Math.cos(angle) * distance,
+        y: sy + Math.sin(angle) * distance,
+        alpha: 0,
+        scale: 0.3,
+        duration: 800 + Math.random() * 500, // Increased from 500+300 to 800+500
+        ease: 'Power2',
+        onComplete: () => particle.destroy()
+      });
+    }
+
+    // Create bright flash
+    const flash = this.add.circle(sx, sy, 8, 0xffaa00)
+      .setDepth(1001);
+    
+    this.tweens.add({
+      targets: flash,
+      scale: 4,
+      alpha: 0,
+      duration: 400, // Increased from 200 to 400
+      ease: 'Power2',
+      onComplete: () => flash.destroy()
+    });
+
+    // Create shockwave ring
+    const ring = this.add.circle(sx, sy, 5, 0xffffff, 0)
+      .setStrokeStyle(2, 0xff8800)
+      .setDepth(999);
+    
+    this.tweens.add({
+      targets: ring,
+      radius: explosionRadius,
+      alpha: 0,
+      duration: 700, // Increased from 400 to 700
+      ease: 'Power2',
+      onComplete: () => ring.destroy()
+    });
+  }
+
+  /** Make ship fade and blink during death */
+  makeShipDeathEffect(victimId: string) {
+    const ship = this.ships.get(victimId);
+    if (!ship) return;
+
+    // Create a blinking/fading effect
+    const shipParts = [ship.body, ship.wings, ship.window, ship.point, ship.weapon, ship.ring];
+    
+    // First, make the ship blink rapidly
+    this.tweens.add({
+      targets: shipParts,
+      alpha: 0.2,
+      duration: 120, // Increased from 80 to 120
+      yoyo: true,
+      repeat: 5, // Increased from 3 to 5 (6 blinks total)
+      ease: 'Power2',
+      onComplete: () => {
+        // After blinking, fade out completely
+        this.tweens.add({
+          targets: shipParts,
+          alpha: 0,
+          scale: 0.7, // Slightly shrink while fading
+          duration: 600, // Increased from 300 to 600
+          ease: 'Power2',
+          onComplete: () => {
+            // Reset alpha and scale in case ship respawns
+            shipParts.forEach(part => {
+              if (part && !part.scene) return; // Skip if destroyed
+              part.setAlpha(1);
+              part.setScale(part.scaleX > 0 ? 0.03 : -0.03); // Restore original scale
+            });
+          }
+        });
+      }
+    });
   }
 }

@@ -79,6 +79,28 @@ export const handlePlayerCollisions = (world: World, dt: number): void => {
           p1.hp = Math.max(0, p1.hp - damage);
           p2.hp = Math.max(0, p2.hp - damage);
 
+          // Emit explosion events for any players that died
+          if (p1.hp <= 0) {
+            p1.deadUntil = now + 500;
+            world.io?.emit("event", {
+              type: "Kill",
+              killerId: p2.id,
+              victimId: p1.id,
+              x: p1.x,
+              y: p1.y,
+            });
+          }
+          if (p2.hp <= 0) {
+            p2.deadUntil = now + 500;
+            world.io?.emit("event", {
+              type: "Kill", 
+              killerId: p1.id,
+              victimId: p2.id,
+              x: p2.x,
+              y: p2.y,
+            });
+          }
+
           // Brief invulnerability to prevent damage spam
           const invulnDuration = 500; // 0.5 seconds
           p1.invulnUntil = Math.max(p1.invulnUntil, now + invulnDuration);

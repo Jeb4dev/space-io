@@ -104,7 +104,13 @@ export const ServerSnapshotSchema = z.object({
 export type ServerSnapshot = z.infer<typeof ServerSnapshotSchema>;
 
 export const ServerEventSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("Kill"), killerId: z.string().nullable(), victimId: z.string() }),
+  z.object({ 
+    type: z.literal("Kill"), 
+    killerId: z.string().nullable(), 
+    victimId: z.string(),
+    x: z.number(),
+    y: z.number(),
+  }),
   z.object({
     type: z.literal("Pickup"),
     playerId: z.string(),
