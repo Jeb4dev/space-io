@@ -107,27 +107,33 @@ export default class Ship {
     maxSpeed: number;
     accel: number;
     magnetRadius: number;
+    fireCooldownMs: number;
   }) {
-    const { maxHp, damage, maxSpeed, accel, magnetRadius } = stats;
+    const { maxHp, damage, maxSpeed, accel, magnetRadius, fireCooldownMs } = stats;
     
-    // Body texture based on HP (0: 100HP, 1: 120HP+, 2: 140HP+)
-    const bodyLevel = maxHp <= 100 ? 0 : maxHp <= 120 ? 1 : 2;
+    // Body texture based on HP - changes at level 2 (120HP), then level 5 (140HP)
+    // Level 1: 100HP (texture 0), Level 2+: 120HP+ (texture 1), Level 5+: 140HP+ (texture 2)
+    const bodyLevel = maxHp <= 100 ? 0 : maxHp < 140 ? 1 : 2;
     this.body.setTexture(`raketti/body${bodyLevel}.png`);
     
-    // Weapon texture based on damage (0: 12 damage, 1: 16+, 2: 20+)
-    const weaponLevel = damage <= 12 ? 0 : damage <= 16 ? 1 : 2;
+    // Weapon texture based on fire cooldown - changes at level 2, then level 5
+    // Level 1: 220ms (texture 0), Level 2+: <220ms (texture 1), Level 5+: much lower (texture 2)
+    const weaponLevel = fireCooldownMs >= 220 ? 0 : fireCooldownMs > 180 ? 1 : 2;
     this.weapon.setTexture(`raketti/weapon${weaponLevel}.png`);
     
-    // Point texture based on max speed (0: 300 speed, 1: 340+, 2: 380+)
-    const pointLevel = maxSpeed <= 300 ? 0 : maxSpeed <= 340 ? 1 : 2;
+    // Point texture based on base damage - changes at level 2, then level 5
+    // Level 1: 12 damage (texture 0), Level 2+: 16+ damage (texture 1), Level 5+: 24+ damage (texture 2)
+    const pointLevel = damage <= 12 ? 0 : damage < 24 ? 1 : 2;
     this.point.setTexture(`raketti/point${pointLevel}.png`);
     
-    // Wings texture based on acceleration (0: 700 accel, 1: 780+, 2: 860+)
-    const wingsLevel = accel <= 700 ? 0 : accel <= 780 ? 1 : 2;
+    // Wings texture based on acceleration - changes at level 2, then level 5
+    // Level 1: 700 accel (texture 0), Level 2+: 740+ accel (texture 1), Level 5+: 820+ accel (texture 2)
+    const wingsLevel = accel <= 700 ? 0 : accel < 820 ? 1 : 2;
     this.wings.setTexture(`raketti/wings${wingsLevel}.png`);
     
-    // Window texture based on magnet radius (0: 100 radius, 1: 130+, 2: 160+)
-    const windowLevel = magnetRadius <= 100 ? 0 : magnetRadius <= 130 ? 1 : 2;
+    // Window texture based on magnet radius - changes at level 2, then level 5
+    // Level 1: 100 radius (texture 0), Level 2+: 130+ radius (texture 1), Level 5+: 190+ radius (texture 2)
+    const windowLevel = magnetRadius <= 100 ? 0 : magnetRadius < 190 ? 1 : 2;
     this.window.setTexture(`raketti/window${windowLevel}.png`);
   }
 

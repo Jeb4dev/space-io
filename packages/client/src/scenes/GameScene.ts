@@ -217,6 +217,7 @@ export default class GameScene extends Phaser.Scene {
             maxSpeed: updated.maxSpeed,
             accel: updated.accel,
             magnetRadius: updated.magnetRadius,
+            fireCooldownMs: updated.fireCooldownMs,
           });
           const youId = this.net.youId;
           if (youId) {
@@ -324,13 +325,26 @@ export default class GameScene extends Phaser.Scene {
     }
     this.pickups.removeMissing(pickupIds);
 
-    // Ensure all player sprites exist; tint others; clean up missing
+    // Ensure all player sprites exist; tint others; update textures; clean up missing
     for (const e of s.entities) {
       if (e.kind !== "player") continue;
       if (!this.ships.has(e.id)) {
         const ship = new Ship(this, { scale: 0.03, ringRadius: 18, showNose: true });
         ship.setTint(e.id === you.id ? SELF_TINT : OTHER_TINT);
         this.ships.set(e.id, ship);
+      }
+      
+      // Update ship textures if we have the stats
+      const ship = this.ships.get(e.id);
+      if (ship && e.maxHp && e.damage && e.maxSpeed && e.accel && e.magnetRadius && e.fireCooldownMs) {
+        ship.updateTextures({
+          maxHp: e.maxHp,
+          damage: e.damage,
+          maxSpeed: e.maxSpeed,
+          accel: e.accel,
+          magnetRadius: e.magnetRadius,
+          fireCooldownMs: e.fireCooldownMs,
+        });
       }
     }
     const ids = new Set(s.entities.filter((e) => e.kind === "player").map((e) => e.id));
