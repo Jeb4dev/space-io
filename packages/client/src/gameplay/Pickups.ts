@@ -28,27 +28,34 @@ export default class Pickups {
       if (!this.byId.has(id)) {
         const container = this.scene.add.container(0, 0).setDepth(2);
         const particles: StardustParticle[] = [];
-        const count = 14;
-        const maxRadius = 10;
+        const count = 9; // more particles for a fuller look
+        const maxRadius = 16; // larger radius for a bigger pickup
         for (let i = 0; i < count; i++) {
-          const t = Math.pow(Math.random(), 1.5);
+          const t = Math.pow(Math.random(), 1.2); // slightly less bias for more spread
           const r = maxRadius * t;
           const a = Math.random() * Math.PI * 2;
           const x = Math.cos(a) * r;
           const y = Math.sin(a) * r;
           const gfx = this.scene.add.graphics({ x, y });
-          gfx.fillStyle(0x8ac6ff, 1);
-          gfx.fillCircle(0, 0, 1.5 + Math.random() * 1.5);
+          // Glowing yellow: use a radial gradient effect
+          const color = 0xffe066; // warm yellow
+          const glow = 0xfff7b2; // soft outer glow
+          // Draw glow
+          gfx.fillStyle(glow, 0.25);
+          gfx.fillCircle(0, 0, 8);
+          // Draw main star
+          gfx.fillStyle(color, 1);
+          gfx.fillCircle(0, 0, 2.5 + Math.random() * 2);
           container.add(gfx);
           particles.push({
             gfx,
-            baseAlpha: 0.5 + Math.random() * 0.5,
-            twinkleFreq: 0.5 + Math.random() * 2,
+            baseAlpha: 0.7 + Math.random() * 0.3, // brighter base
+            twinkleFreq: 0.8 + Math.random() * 2.2, // more twinkle variation
             twinklePhase: Math.random() * Math.PI * 2,
             baseX: x,
             baseY: y,
             oscA: Math.random() * Math.PI * 2,
-            oscR: 0.5 + Math.random() * 1.5,
+            oscR: 1.2 + Math.random() * 2.2, // more movement
           });
         }
         this.byId.set(id, container);
@@ -93,14 +100,18 @@ export default class Pickups {
   private updateStardust(time: number) {
     for (const [id, particles] of this.stardustParticles) {
       for (const p of particles) {
-        // Twinkle effect
-        const twinkle = (Math.sin(time * 0.002 * p.twinkleFreq + p.twinklePhase) * 0.5 + 0.5) * 0.7;
-        const alpha = Phaser.Math.Clamp(p.baseAlpha + twinkle, 0, 1);
+        // Twinkle effect: more intense and glowing
+        const twinkle = (Math.sin(time * 0.001 * p.twinkleFreq + p.twinklePhase) * 0.5 + 0.5) * 1.1;
+        const alpha = Phaser.Math.Clamp(p.baseAlpha + twinkle, 0.5, 1.2);
         p.gfx.clear();
-        p.gfx.fillStyle(0x8ac6ff, alpha);
-        p.gfx.fillCircle(0, 0, 2);
+        // Glow
+        p.gfx.fillStyle(0xfff7b2, .5 * alpha);
+        p.gfx.fillCircle(0, 0, 6);
+        // Main star
+        p.gfx.fillStyle(0xFFFBEA, alpha);
+        p.gfx.fillCircle(0, 0, 2.5);
         // Oscillate around base position, but do not drift
-        const osc = Math.sin(time * 0.001 + p.oscA) * p.oscR;
+        const osc = Math.sin(time * 0.002 + p.oscA) * p.oscR;
         p.gfx.x = p.baseX + Math.cos(p.oscA) * osc;
         p.gfx.y = p.baseY + Math.sin(p.oscA) * osc;
       }
