@@ -217,12 +217,9 @@ export default class GameScene extends Phaser.Scene {
           if (youId) {
             const you = this.interp.get(youId);
             if (you) {
-              console.log('Current player state before update:', you);
-              // Update the player's stats with the new values from the server
               Object.assign(you, e.updated);
-              console.log('Player state after update:', you);
-              // Don't update HUD here - let the snapshot handler do it to avoid conflicts
-              // this.hud.setPowerups(you);
+              // Immediately refresh HUD powerups panel from event data
+              this.hud.setPowerups({ ...you, powerupLevels: updated.powerupLevels });
             }
           }
         }
@@ -297,6 +294,8 @@ export default class GameScene extends Phaser.Scene {
     if (typeof (you as any).xp === "number" && typeof (you as any).xpToNext === "number") {
       this.hud.setXP((you as any).xp, (you as any).xpToNext);
     }
+    // NEW: Update powerups panel each snapshot
+    this.hud.setPowerups(you);
 
     // Bullets: ensure sprites now (placement each frame from interpolated entities)
     const bulletIds = new Set<string>();
