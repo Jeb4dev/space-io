@@ -220,8 +220,11 @@ export default class GameScene extends Phaser.Scene {
     const pointer = this.input.activePointer;
     this.aim = Math.atan2(pointer.worldY - cy, pointer.worldX - cx);
 
-    // Thrust rule: Desktop = always toward pointer; Mobile = only while touching
-    if (this.alwaysThrust || this.isThrusting) {
+    // If mouse is near the ship (center), stop acceleration
+    const mouseDist = Math.hypot(pointer.worldX - cx, pointer.worldY - cy);
+    const stopRadius = 80; // px, tweak as needed
+
+    if ((this.alwaysThrust || this.isThrusting) && mouseDist > stopRadius) {
       this.thrust = { x: Math.cos(this.aim), y: Math.sin(this.aim) };
     } else {
       this.thrust = { x: 0, y: 0 };
