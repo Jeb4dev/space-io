@@ -46,7 +46,8 @@ const PlayerEntitySchema = z.object({
   maxHp: z.number().optional(),
   xp: z.number(),
   xpToNext: z.number(),
-  level: z.number()
+  level: z.number(),
+  mass: z.number()
 });
 
 const BulletEntitySchema = z.object({

@@ -11,7 +11,7 @@ import {
   type ServerToClient
 } from '@game/shared';
 
-const PORT = Number(process.env.PORT ?? 3001);
+const PORT = Number(process.env.PORT ?? 8080);
 const WS_PATH = '/ws';
 
 type ClientState = {

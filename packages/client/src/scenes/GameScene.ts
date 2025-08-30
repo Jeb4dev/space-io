@@ -3,8 +3,8 @@ import { Net } from "@client/net/socket";
 import { NamePrompt } from "@client/ui/NamePrompt";
 import { LevelUpModal } from "@client/ui/LevelUpModal";
 import { HUD } from "@client/ui/HUD";
-import type { ServerSnapshot } from "@shared/messages";
-import type { WellState } from "@shared/types";
+import type { ServerSnapshot } from "@game/shared";
+import type { WellState } from "@game/shared";
 import { Interp } from "@client/state/interp";
 import { Recon } from "@client/state/recon";
 import Ship from "@client/gameplay/Ship";
@@ -71,7 +71,7 @@ constructor() {
 preload() {
   // Load PNG from monorepo path: packages/assets/spaceship.png
   // (three ../ from this file: client/src/scenes -> client -> packages -> assets)
-  const shipUrl = new URL("../../../assets/spaceship.png", import.meta.url).toString();
+  const shipUrl = new URL("../assets/spaceship.png", import.meta.url).toString();
   this.load.image(SHIP_TEX_KEY, shipUrl);
 }
 
@@ -171,12 +171,12 @@ onSnapshot(s: ServerSnapshot) {
 
   // HUD
   this.hud.setScoreboard(s.scoreboard);
-  if (you.maxHp) this.hud.setHP(you.hp ?? 0, you.maxHp);
-  
+  if (you.kind === "player" && you.maxHp) this.hud.setHP(you.hp ?? 0, you.maxHp);
+
   if (you.kind === "player") {
-  const player = you as any; // or as Player type if available
-  this.hud.setXP(player.xp ?? 0, player.xpToNext);
-}
+    const player = you; // TypeScript now knows this is PlayerEntityState
+    this.hud.setXP(player.xp ?? 0, player.xpToNext);
+  }
 
   // Bullets: ensure sprites now (placement each frame from interpolated entities)
   const bulletIds = new Set<string>();
@@ -287,9 +287,9 @@ update(_time: number, delta: number) {
     }
 
     // Parallax + HUD from interpolated you (dt for framerate independence)
-    this.parallax.update(youI.vx, youI.vy, delta);
-    if (youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
-    if (youI.xpToNext) this.hud.setXP(youI.xp ?? 0, youI.xpToNext);
+    this.parallax.update(youI.vx ?? 0, youI.vy ?? 0, delta);
+    if (youI.kind === "player" && youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
+    if (youI.kind === "player" && youI.xpToNext) this.hud.setXP(youI.xp ?? 0, youI.xpToNext);
   }
 
   // Bullets: place via interpolated entities

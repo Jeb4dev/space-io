@@ -45,5 +45,5 @@ COPY --from=build /app/packages/server/dist          packages/server/dist
 RUN pnpm install --frozen-lockfile --prod
 
 WORKDIR /app/packages/server
-EXPOSE 18080
+EXPOSE 8080
 CMD ["node", "--experimental-specifier-resolution=node", "dist/index.js"]
