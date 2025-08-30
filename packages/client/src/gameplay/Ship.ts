@@ -100,5 +100,36 @@ export default class Ship {
     this.ring.destroy();
   }
 
+  // Update ship textures based on player stats
+  updateTextures(stats: {
+    maxHp: number;
+    damage: number;
+    maxSpeed: number;
+    accel: number;
+    magnetRadius: number;
+  }) {
+    const { maxHp, damage, maxSpeed, accel, magnetRadius } = stats;
+    
+    // Body texture based on HP (0: 100HP, 1: 120HP+, 2: 140HP+)
+    const bodyLevel = maxHp <= 100 ? 0 : maxHp <= 120 ? 1 : 2;
+    this.body.setTexture(`raketti/body${bodyLevel}.png`);
+    
+    // Weapon texture based on damage (0: 12 damage, 1: 16+, 2: 20+)
+    const weaponLevel = damage <= 12 ? 0 : damage <= 16 ? 1 : 2;
+    this.weapon.setTexture(`raketti/weapon${weaponLevel}.png`);
+    
+    // Point texture based on max speed (0: 300 speed, 1: 340+, 2: 380+)
+    const pointLevel = maxSpeed <= 300 ? 0 : maxSpeed <= 340 ? 1 : 2;
+    this.point.setTexture(`raketti/point${pointLevel}.png`);
+    
+    // Wings texture based on acceleration (0: 700 accel, 1: 780+, 2: 860+)
+    const wingsLevel = accel <= 700 ? 0 : accel <= 780 ? 1 : 2;
+    this.wings.setTexture(`raketti/wings${wingsLevel}.png`);
+    
+    // Window texture based on magnet radius (0: 100 radius, 1: 130+, 2: 160+)
+    const windowLevel = magnetRadius <= 100 ? 0 : magnetRadius <= 130 ? 1 : 2;
+    this.window.setTexture(`raketti/window${windowLevel}.png`);
+  }
+
   // Removed nose sync method
 }

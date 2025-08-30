@@ -51,6 +51,10 @@ export const ServerSnapshotSchema = z.object({
       ownerId: z.string().optional(),
       xp: z.number().optional(),
       xpToNext: z.number().optional(),
+      damage: z.number().optional(),
+      maxSpeed: z.number().optional(),
+      accel: z.number().optional(),
+      magnetRadius: z.number().optional(),
     }),
   ),
   pickups: z.array(

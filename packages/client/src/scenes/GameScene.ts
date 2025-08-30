@@ -74,16 +74,29 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    // Preload custom ship part textures
+    // Preload custom ship part textures - all upgrade levels (0, 1, 2)
     this.load.image("raketti/body0.png", new URL("../assets/raketti/body0.png", import.meta.url).toString());
+    this.load.image("raketti/body1.png", new URL("../assets/raketti/body1.png", import.meta.url).toString());
+    this.load.image("raketti/body2.png", new URL("../assets/raketti/body2.png", import.meta.url).toString());
+    
     this.load.image("raketti/wings0.png", new URL("../assets/raketti/wings0.png", import.meta.url).toString());
+    this.load.image("raketti/wings1.png", new URL("../assets/raketti/wings1.png", import.meta.url).toString());
+    this.load.image("raketti/wings2.png", new URL("../assets/raketti/wings2.png", import.meta.url).toString());
+    
     this.load.image("raketti/window0.png", new URL("../assets/raketti/window0.png", import.meta.url).toString());
+    this.load.image("raketti/window1.png", new URL("../assets/raketti/window1.png", import.meta.url).toString());
+    this.load.image("raketti/window2.png", new URL("../assets/raketti/window2.png", import.meta.url).toString());
+    
     this.load.image("raketti/point0.png", new URL("../assets/raketti/point0.png", import.meta.url).toString());
+    this.load.image("raketti/point1.png", new URL("../assets/raketti/point1.png", import.meta.url).toString());
+    this.load.image("raketti/point2.png", new URL("../assets/raketti/point2.png", import.meta.url).toString());
+    
     this.load.image("raketti/weapon0.png", new URL("../assets/raketti/weapon0.png", import.meta.url).toString());
+    this.load.image("raketti/weapon1.png", new URL("../assets/raketti/weapon1.png", import.meta.url).toString());
+    this.load.image("raketti/weapon2.png", new URL("../assets/raketti/weapon2.png", import.meta.url).toString());
 
     // Preload heart image for HP pickups
     this.load.image("heart", new URL("../assets/muut/heart.png", import.meta.url).toString());
-    this.load.image("raketti/weapon0.png", new URL("../assets/raketti/weapon0.png", import.meta.url).toString());
     // Preload planet assets
     this.load.image("EARTH", new URL("../assets/planeetat/EARTH.png", import.meta.url).toString());
     this.load.image("JUPITER", new URL("../assets/planeetat/JUPITER.png", import.meta.url).toString());
@@ -178,6 +191,19 @@ export default class GameScene extends Phaser.Scene {
       if (e.type === "LevelUpOffer") {
         const choice = await this.levelModal.choose(e.choices);
         this.net.choosePowerup(choice);
+      } else if (e.type === "LevelUpApplied") {
+        // Update ship textures when stats change
+        const updated = (e as any).updated;
+        const ship = this.ships.get(this.net.youId!);
+        if (ship && updated) {
+          ship.updateTextures({
+            maxHp: updated.maxHp,
+            damage: updated.damage,
+            maxSpeed: updated.maxSpeed,
+            accel: updated.accel,
+            magnetRadius: updated.magnetRadius,
+          });
+        }
       }
     });
     this.net.onSnapshot((s) => this.onSnapshot(s));
@@ -248,6 +274,24 @@ export default class GameScene extends Phaser.Scene {
     if (you.maxHp) this.hud.setHP(you.hp ?? 0, you.maxHp);
     if (typeof (you as any).xp === "number" && typeof (you as any).xpToNext === "number") {
       this.hud.setXP((you as any).xp, (you as any).xpToNext);
+    }
+
+    // Update ship textures based on stats from snapshot (for all players)
+    for (const e of s.entities) {
+      if (e.kind === "player") {
+        const ship = this.ships.get(e.id);
+        if (ship && (e as any).maxHp !== undefined) {
+          // Extract player stats from entity (these come from server snapshot now)
+          const playerEntity = e as any;
+          ship.updateTextures({
+            maxHp: playerEntity.maxHp || 100,
+            damage: playerEntity.damage || 12,
+            maxSpeed: playerEntity.maxSpeed || 300,
+            accel: playerEntity.accel || 500,
+            magnetRadius: playerEntity.magnetRadius || 100,
+          });
+        }
+      }
     }
 
     // Bullets: ensure sprites now (placement each frame from interpolated entities)
