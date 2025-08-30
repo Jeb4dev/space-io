@@ -42,7 +42,7 @@ export const PICKUPS = {
 };
 
 export const GRAVITY = {
-  G: 100_000, // tuned for game feel
+  G: 15, // tuned for game feel
   epsilon: 1000, // avoids singularities
   maxPull: 1000,
   planetScrollSpeed: 50, // pixels per second downward movement

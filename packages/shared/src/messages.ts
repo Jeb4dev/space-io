@@ -49,6 +49,8 @@ export const ServerSnapshotSchema = z.object({
       hp: z.number().optional(),
       maxHp: z.number().optional(),
       ownerId: z.string().optional(),
+      xp: z.number().optional(),
+      xpToNext: z.number().optional(),
     }),
   ),
   pickups: z.array(

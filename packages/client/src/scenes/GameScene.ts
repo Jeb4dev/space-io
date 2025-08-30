@@ -83,7 +83,7 @@ export default class GameScene extends Phaser.Scene {
 
     // Preload heart image for HP pickups
     this.load.image("heart", new URL("../assets/muut/heart.png", import.meta.url).toString());
-
+    this.load.image("raketti/weapon0.png", new URL("../assets/raketti/weapon0.png", import.meta.url).toString());
     // Preload planet assets
     this.load.image("EARTH", new URL("../assets/planeetat/EARTH.png", import.meta.url).toString());
     this.load.image("JUPITER", new URL("../assets/planeetat/JUPITER.png", import.meta.url).toString());
@@ -246,6 +246,9 @@ export default class GameScene extends Phaser.Scene {
     // HUD
     this.hud.setScoreboard(s.scoreboard);
     if (you.maxHp) this.hud.setHP(you.hp ?? 0, you.maxHp);
+    if (typeof (you as any).xp === "number" && typeof (you as any).xpToNext === "number") {
+      this.hud.setXP((you as any).xp, (you as any).xpToNext);
+    }
 
     // Bullets: ensure sprites now (placement each frame from interpolated entities)
     const bulletIds = new Set<string>();
