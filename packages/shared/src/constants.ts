@@ -53,10 +53,21 @@ export const GRAVITY = {
       x: 3000,
       y: 700,
       mass: 4e6,
-      radius: 160,
+      radius: 200,
       influenceRadius: 800,
       type: "sun" as const,
-      maxPull: 2000,
+      maxPull: 3800,
+    },
+    {
+      id: "marsA",
+      x: 1200,
+      y: 1800,
+      mass: 2.5e6,
+      radius: 110,
+      influenceRadius: 500,
+      type: "planet" as const,
+      maxPull: 2800,
+      texture: "planeetat/MARS.png"
     },
     { id: "holeA", x: 2100, y: 2300, mass: 6e6, radius: 110, influenceRadius: 950, type: "blackhole" as const, maxPull: 2600 }
   ],
