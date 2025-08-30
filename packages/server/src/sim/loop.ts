@@ -7,6 +7,7 @@ import { updatePickups } from "./systems/pickups.js";
 import { handleDeathsAndRespawn } from "./systems/combat.js";
 import { getScoreboard } from "./systems/scoreboard.js";
 import { spawnBot, updateBots, cleanupBots, getBotCount } from "./systems/bots.js";
+import { updatePlanetMovement } from "./systems/planetMovement.js";
 import { BULLET } from "@shared/constants.js";
 
 let snapshotAccumulator = 0;
@@ -41,6 +42,9 @@ export const startLoop = (io: Server, world: World) => {
         }
       }
     }
+
+    // Update planet positions for infinite scrolling effect
+    updatePlanetMovement(world, dt);
 
     processInputs(world, now);
     applyGravity(world, dt);
