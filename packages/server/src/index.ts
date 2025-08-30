@@ -21,6 +21,6 @@ const world = createWorld();
 setupSocket(io, world);
 startLoop(io, world);
 
-server.listen(config.port, () => {
-  console.log(`[server] listening on :${config.port}`);
+server.listen(config.port, config.host, () => {
+  console.log(`[server] listening on ${config.host}:${config.port}`);
 });

@@ -3,7 +3,7 @@ import path from "path";
 
 export default defineConfig({
   server: {
-    port: 15173,
+    port: 5173,
     strictPort: true,
   },
   resolve: {

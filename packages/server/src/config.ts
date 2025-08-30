@@ -7,11 +7,12 @@ const n = (v: string | undefined, fallback: number) => {
 };
 
 export const config = {
+  host: process.env.HOST ?? "0.0.0.0",
   port: n(process.env.PORT, 8080),
   tickHz: n(process.env.TICK_HZ, TICK_HZ),
   snapshotHz: n(process.env.SNAPSHOT_HZ, SNAPSHOT_HZ),
   roomCap: n(process.env.ROOM_CAP, ROOM.cap),
-  corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:15173",
+  corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
   botsEnabled: (process.env.BOTS_ENABLED ?? "false").toLowerCase() === "true",
-  publicUrl: process.env.PUBLIC_URL ?? "http://localhost:18080",
+  publicUrl: process.env.PUBLIC_URL ?? "http://localhost:8080",
 } as const;
