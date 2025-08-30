@@ -84,15 +84,28 @@ export class HUD {
     const container = this.powerupsPanel.querySelector('.powerups-list') as HTMLDivElement;
     if (!container) return;
 
-    // Calculate powerup levels based on player stats
-    const powerups = this.calculatePowerupLevels(stats);
+    // Prefer explicit powerupLevels from server; else derive
+    const serverLevels = stats.powerupLevels as Record<string, number> | undefined;
 
-    container.innerHTML = powerups.map(p =>
-      `<div class="powerup-item">
+    const families = ["Hull", "Damage", "Engine", "FireRate", "Magnet", "Shield"] as const;
+    let list: { name: string; level: number; max: number }[] = [];
+
+    if (serverLevels) {
+      list = families.map(name => ({ name, level: serverLevels[name] ?? 0, max: 5 }));
+    } else {
+      // Fallback to calculation (legacy)
+      const calc = this.calculatePowerupLevels(stats);
+      const calcMap: Record<string, number> = {};
+      for (const c of calc) calcMap[c.name] = c.level;
+      list = families.map(name => ({ name, level: calcMap[name] ?? 0, max: 5 }));
+    }
+
+    // Build HTML (always show all families)
+    container.innerHTML = list.map(p => `
+      <div class="powerup-item">
         <span class="powerup-name">${p.name}</span>
-        <span class="powerup-level">Lv ${p.level}</span>
-      </div>`
-    ).join('');
+        <span class="powerup-level">Lv ${p.level}/${p.max}</span>
+      </div>`).join('');
   }
 
   private calculatePowerupLevels(stats: any) {
@@ -111,19 +124,21 @@ export class HUD {
     const magnetRadius = stats.magnetRadius || baseMagnet;
     const shield = stats.shield || 0;
 
-    // Debug logging to see what we're getting
-    console.log('Player stats received:', stats);
-    console.log('Calculated values:', { maxHp, damage, accel, fireCooldownMs, magnetRadius, shield });
-
-    // Use the ACTUAL server upgrade amounts for level calculations
-    return [
-      { name: "Hull", level: Math.max(1, Math.min(5, Math.round((maxHp - baseMaxHp) / 20) + 1)) },
-      { name: "Damage", level: Math.max(1, Math.min(5, Math.round((damage - baseDamage) / 4) + 1)) }, // Server uses +4
-      { name: "Engine", level: Math.max(1, Math.min(5, Math.round((accel - baseAccel) / 80) + 1)) }, // Server uses +80
-      { name: "FireRate", level: Math.max(1, Math.min(5, Math.round((baseFireRate - fireCooldownMs) / 25) + 1)) }, // Server uses -25
-      { name: "Magnet", level: Math.max(1, Math.min(5, Math.round((magnetRadius - baseMagnet) / 30) + 1)) }, // Server uses +30
-      { name: "Shield", level: Math.max(1, Math.min(5, Math.round(shield / 10) + 1)) },
+    // Calculate actual upgrade levels (0 = no upgrades, 1-5 = upgrade levels)
+    const powerups = [
+      { name: "Hull", level: Math.round((maxHp - baseMaxHp) / 20) },
+      { name: "Damage", level: Math.round((damage - baseDamage) / 4) },
+      { name: "Engine", level: Math.round((accel - baseAccel) / 80) },
+      { name: "FireRate", level: Math.round((baseFireRate - fireCooldownMs) / 25) },
+      { name: "Magnet", level: Math.round((magnetRadius - baseMagnet) / 30) },
+      { name: "Shield", level: Math.round(shield / 10) },
     ];
+
+    // Only return powerups that have been upgraded (level > 0)
+    return powerups.filter(p => p.level > 0).map(p => ({
+      ...p,
+      level: Math.min(5, p.level) // Cap at level 5
+    }));
   }
 
   setScoreboard(entries: Array<{ name: string; score: number; level: number }>) {

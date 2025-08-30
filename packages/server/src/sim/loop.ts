@@ -110,6 +110,8 @@ export const ioSnapshot = (io: Server, world: World) => {
         fireCooldownMs: op.fireCooldownMs,
         magnetRadius: op.magnetRadius,
         shield: op.shield,
+        // Include powerup levels for accurate HUD display
+        powerupLevels: op.powerupLevels,
       })),
       ...Array.from(world.bullets.values()).map((b) => ({
         id: b.id,

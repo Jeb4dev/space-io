@@ -188,6 +188,21 @@ export default class GameScene extends Phaser.Scene {
         const you = this.interp.get(this.net.youId || "");
         const choice = await this.levelModal.choose(e.choices, you);
         this.net.choosePowerup(choice);
+      } else if (e.type === "LevelUpApplied") {
+        // Update local player stats immediately when powerup is applied
+        console.log('LevelUpApplied event received:', e);
+        const youId = this.net.youId;
+        if (youId) {
+          const you = this.interp.get(youId);
+          if (you) {
+            console.log('Current player state before update:', you);
+            // Update the player's stats with the new values from the server
+            Object.assign(you, e.updated);
+            console.log('Player state after update:', you);
+            // Don't update HUD here - let the snapshot handler do it to avoid conflicts
+            // this.hud.setPowerups(you);
+          }
+        }
       }
     });
     this.net.onSnapshot((s) => this.onSnapshot(s));

@@ -51,6 +51,22 @@ export const ServerSnapshotSchema = z.object({
       ownerId: z.string().optional(),
       xp: z.number().optional(),
       xpToNext: z.number().optional(),
+      // Added detailed powerup stat fields so client HUD can derive levels exactly
+      damage: z.number().optional(),
+      accel: z.number().optional(),
+      fireCooldownMs: z.number().optional(),
+      magnetRadius: z.number().optional(),
+      shield: z.number().optional(),
+      powerupLevels: z
+        .object({
+          Hull: z.number(),
+          Damage: z.number(),
+            Engine: z.number(),
+            FireRate: z.number(),
+            Magnet: z.number(),
+            Shield: z.number(),
+        })
+        .optional(),
     }),
   ),
   pickups: z.array(
@@ -124,6 +140,14 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
       magnetRadius: z.number(),
       shield: z.number(),
       altFire: z.enum(["railgun", "spread"]).optional(),
+      powerupLevels: z.object({
+        Hull: z.number(),
+        Damage: z.number(),
+        Engine: z.number(),
+        FireRate: z.number(),
+        Magnet: z.number(),
+        Shield: z.number(),
+      }).optional(),
     }),
   }),
 ]);

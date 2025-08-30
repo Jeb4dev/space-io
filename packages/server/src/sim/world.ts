@@ -38,6 +38,15 @@ export type Player = {
   pendingOffer?: boolean;
   invulnUntil: number;
   altFire?: "railgun" | "spread";
+  // Powerup levels (1-5 for each powerup type)
+  powerupLevels: {
+    Hull: number;
+    Damage: number;
+    Engine: number;
+    FireRate: number;
+    Magnet: number;
+    Shield: number;
+  };
   inputQueue: Array<{
     seq: number;
     aim: number;

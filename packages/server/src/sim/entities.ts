@@ -40,6 +40,15 @@ export const addPlayer = (
     lastAckSeq: 0,
     score: 0,
     mass: 0,
+    // Initialize all powerups at level 0 (no upgrades)
+    powerupLevels: {
+      Hull: 0,
+      Damage: 0,
+      Engine: 0,
+      FireRate: 0,
+      Magnet: 0,
+      Shield: 0,
+    },
   };
   world.players.set(id, p);
   return p;
@@ -132,24 +141,45 @@ export const applyLevelChoice = (
 ) => {
   const p = world.players.get(id);
   if (!p || !p.pendingOffer) return;
+
   if (choice.family === "AltFire" && p.level >= 10 && choice.alt) {
     p.altFire = choice.alt;
   } else if (choice.family === "Hull" && choice.tier) {
-    p.maxHp += 20;
-    p.hp = Math.min(p.maxHp, p.hp + 20);
+    // Check if Hull is already at max level (5)
+    if (p.powerupLevels.Hull < 5) {
+      p.powerupLevels.Hull++;
+      p.maxHp += 20;
+      p.hp = Math.min(p.maxHp, p.hp + 20);
+    }
   } else if (choice.family === "Damage" && choice.tier) {
-    p.damage += 4;
+    if (p.powerupLevels.Damage < 5) {
+      p.powerupLevels.Damage++;
+      p.damage += 4;
+    }
   } else if (choice.family === "Engine" && choice.tier) {
-    p.maxSpeed += 40;
-    p.accel += 80;
+    if (p.powerupLevels.Engine < 5) {
+      p.powerupLevels.Engine++;
+      p.maxSpeed += 40;
+      p.accel += 80;
+    }
   } else if (choice.family === "FireRate" && choice.tier) {
-    p.fireCooldownMs = Math.max(80, p.fireCooldownMs - 25);
+    if (p.powerupLevels.FireRate < 5) {
+      p.powerupLevels.FireRate++;
+      p.fireCooldownMs = Math.max(80, p.fireCooldownMs - 25);
+    }
   } else if (choice.family === "Magnet" && choice.tier) {
-    p.magnetRadius += 30;
+    if (p.powerupLevels.Magnet < 5) {
+      p.powerupLevels.Magnet++;
+      p.magnetRadius += 30;
+    }
   } else if (choice.family === "Shield" && choice.tier) {
-    p.shield += 10;
-    p.hp = Math.min(p.maxHp + p.shield, p.hp + 10);
+    if (p.powerupLevels.Shield < 5) {
+      p.powerupLevels.Shield++;
+      p.shield += 10;
+      p.hp = Math.min(p.maxHp + p.shield, p.hp + 10);
+    }
   }
+
   p.pendingOffer = false;
   const socket = world.io?.sockets.sockets.get(p.socketId);
   socket?.emit("event", {
@@ -166,66 +196,102 @@ export const applyLevelChoice = (
       magnetRadius: p.magnetRadius,
       shield: p.shield,
       altFire: p.altFire,
+      powerupLevels: p.powerupLevels,
     },
   });
 };
 
 const rollChoices = (p: Player): PowerupChoice[] => {
   const arr: PowerupChoice[] = [];
-  const families = [...Array.from({ length: POWERUPS.tiers }).keys()].map((i) => i + 1);
-  const pool: PowerupChoice[] = [
-    ...families.map((tier) => ({
+
+  // Create pool of available powerups that aren't at max level
+  const pool: PowerupChoice[] = [];
+
+  // Only add powerups that aren't at max level (5)
+  if (p.powerupLevels.Hull < 5) {
+    const nextLevel = p.powerupLevels.Hull + 1;
+    pool.push({
       family: "Hull" as const,
-      tier,
-      label: `Hull T${tier}`,
+      tier: nextLevel,
+      label: `Hull Lv${nextLevel}`,
       desc: "+20 Max HP",
-    })),
-    ...families.map((tier) => ({
-      family: "Damage" as const,
-      tier,
-      label: `Damage T${tier}`,
-      desc: "+4 Damage",
-    })),
-    ...families.map((tier) => ({
-      family: "Engine" as const,
-      tier,
-      label: `Engine T${tier}`,
-      desc: "+Speed/Accel",
-    })),
-    ...families.map((tier) => ({
-      family: "FireRate" as const,
-      tier,
-      label: `Fire Rate T${tier}`,
-      desc: "-Cooldown",
-    })),
-    ...families.map((tier) => ({
-      family: "Magnet" as const,
-      tier,
-      label: `Magnet T${tier}`,
-      desc: "+Pickup Radius",
-    })),
-    ...families.map((tier) => ({
-      family: "Shield" as const,
-      tier,
-      label: `Shield T${tier}`,
-      desc: "+Shield/HP",
-    })),
-  ];
-  while (arr.length < 3) {
-    // weight: prefer non-repeated families lightly
-    const pick = pool[Math.floor(Math.random() * pool.length)];
-    if (!arr.find((c) => c.family === pick.family)) arr.push(pick);
+    });
   }
-  if (p.level >= 10 && !p.altFire) {
-    // replace one with alt-fire choice
-    const idx = Math.floor(Math.random() * 3);
-    arr[idx] = {
+
+  if (p.powerupLevels.Damage < 5) {
+    const nextLevel = p.powerupLevels.Damage + 1;
+    pool.push({
+      family: "Damage" as const,
+      tier: nextLevel,
+      label: `Damage Lv${nextLevel}`,
+      desc: "+4 Damage",
+    });
+  }
+
+  if (p.powerupLevels.Engine < 5) {
+    const nextLevel = p.powerupLevels.Engine + 1;
+    pool.push({
+      family: "Engine" as const,
+      tier: nextLevel,
+      label: `Engine Lv${nextLevel}`,
+      desc: "+Speed/Accel",
+    });
+  }
+
+  if (p.powerupLevels.FireRate < 5) {
+    const nextLevel = p.powerupLevels.FireRate + 1;
+    pool.push({
+      family: "FireRate" as const,
+      tier: nextLevel,
+      label: `Fire Rate Lv${nextLevel}`,
+      desc: "-25ms Cooldown",
+    });
+  }
+
+  if (p.powerupLevels.Magnet < 5) {
+    const nextLevel = p.powerupLevels.Magnet + 1;
+    pool.push({
+      family: "Magnet" as const,
+      tier: nextLevel,
+      label: `Magnet Lv${nextLevel}`,
+      desc: "+30 Pickup Radius",
+    });
+  }
+
+  if (p.powerupLevels.Shield < 5) {
+    const nextLevel = p.powerupLevels.Shield + 1;
+    pool.push({
+      family: "Shield" as const,
+      tier: nextLevel,
+      label: `Shield Lv${nextLevel}`,
+      desc: "+10 Shield/HP",
+    });
+  }
+
+  // Select up to 3 different powerup families
+  while (arr.length < 3 && pool.length > 0) {
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    const pick = pool[randomIndex];
+
+    // Check if we already have this family in our selection
+    if (!arr.find((c) => c.family === pick.family)) {
+      arr.push(pick);
+    }
+
+    // Remove the picked item from pool to avoid duplicates
+    pool.splice(randomIndex, 1);
+  }
+
+  // Add AltFire option if eligible and we have space
+  if (p.level >= 10 && !p.altFire && arr.length < 3) {
+    arr.push({
       family: "AltFire" as const,
       alt: Math.random() < 0.5 ? "railgun" : "spread",
       label: "Alt Fire",
       desc: "Unlock special weapon",
-    };
+    });
   }
+
   return arr;
 };
 
