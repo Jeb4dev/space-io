@@ -8,6 +8,7 @@ import { handleDeathsAndRespawn } from "./systems/combat.js";
 import { getScoreboard } from "./systems/scoreboard.js";
 import { spawnBot, updateBots, cleanupBots, getBotCount } from "./systems/bots.js";
 import { updatePlanetMovement } from "./systems/planetMovement.js";
+import { handlePlayerCollisions } from "./systems/playerCollisions.js";
 import { BULLET } from "@shared/constants.js";
 
 let snapshotAccumulator = 0;
@@ -49,6 +50,7 @@ export const startLoop = (io: Server, world: World) => {
     processInputs(world, now);
     applyGravity(world, dt);
     integrate(world, dt);
+    handlePlayerCollisions(world, dt);
     bulletHits(world, dt, now);
     updatePickups(world);
     handleDeathsAndRespawn(world, now);
