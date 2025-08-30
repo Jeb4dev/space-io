@@ -77,6 +77,13 @@ export default class GameScene extends Phaser.Scene {
     this.load.image("raketti/point0.png", new URL("../assets/raketti/point0.png", import.meta.url).toString());
     // Preload heart image for HP pickups
     this.load.image("heart", new URL("../assets/muut/heart.png", import.meta.url).toString());
+    // Preload planet images
+    this.load.image("EARTH", "/assets/planeetat/EARTH.png");
+    this.load.image("MARS", "/assets/planeetat/MARS.png");
+    this.load.image("SATURNUS", "/assets/planeetat/SATURNUS.png");
+    this.load.image("NEPTUNUS", "/assets/planeetat/NEPTUNUS.png");
+    this.load.image("JUPITER", "/assets/planeetat/JUPITER.png");
+    this.load.image("VENUS", "/assets/planeetat/VENUS.png");
   }
 
   async create() {
