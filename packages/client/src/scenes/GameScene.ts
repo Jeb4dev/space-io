@@ -172,6 +172,11 @@ onSnapshot(s: ServerSnapshot) {
   // HUD
   this.hud.setScoreboard(s.scoreboard);
   if (you.maxHp) this.hud.setHP(you.hp ?? 0, you.maxHp);
+  
+  if (you.kind === "player") {
+  const player = you as any; // or as Player type if available
+  this.hud.setXP(player.xp ?? 0, player.xpToNext);
+}
 
   // Bullets: ensure sprites now (placement each frame from interpolated entities)
   const bulletIds = new Set<string>();
@@ -284,12 +289,17 @@ update(_time: number, delta: number) {
     // Parallax + HUD from interpolated you (dt for framerate independence)
     this.parallax.update(youI.vx, youI.vy, delta);
     if (youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
+    if (youI.xpToNext) this.hud.setXP(youI.xp ?? 0, youI.xpToNext);
   }
 
   // Bullets: place via interpolated entities
   if (youI) {
     for (const id of this.interp.ids()) {
       const e = this.interp.get(id)!;
+      if (youI.kind === "player") {
+        if (youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
+        if (youI.xpToNext) this.hud.setXP(youI.xp ?? 0, youI.xpToNext);
+      }
       if (e.kind === "bullet") {
         this.bullets.place(id, cx + (e.x - youI.x), cy + (e.y - youI.y));
       }

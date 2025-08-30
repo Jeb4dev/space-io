@@ -42,7 +42,6 @@ export type Player = {
   lastAckSeq: number;
   deadUntil?: number;
   score: number;
-  mass: number;
 };
 
 export type Bullet = {
