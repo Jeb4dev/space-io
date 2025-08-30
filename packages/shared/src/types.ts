@@ -62,6 +62,7 @@ export type WellState = {
   influenceRadius: number;
   type: WellType;
   maxPull: number;
+  texture?: string; // Optional texture key for rendering
 };
 
 export type ScoreEntry = {

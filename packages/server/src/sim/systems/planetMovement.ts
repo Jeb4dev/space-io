@@ -4,11 +4,11 @@ import type { World } from "../world.js";
 
 // Pool of planet configurations for variety
 const PLANET_CONFIGS = [
-  { mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400, texture: "planeetat/EARTH.png" },
-  { mass: 2.5e6, radius: 110, influenceRadius: 500, type: "planet" as const, maxPull: 2800, texture: "planeetat/MARS.png" },
-  { mass: 3e6, radius: 140, influenceRadius: 650, type: "planet" as const, maxPull: 2000, texture: "planeetat/JUPITER.png" },
-  { mass: 1.8e6, radius: 100, influenceRadius: 480, type: "planet" as const, maxPull: 1600, texture: "planeetat/VENUS.png" },
-  { mass: 4e6, radius: 180, influenceRadius: 800, type: "sun" as const, maxPull: 3800 },
+  { mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400, texture: "EARTH" },
+  { mass: 2.5e6, radius: 110, influenceRadius: 500, type: "planet" as const, maxPull: 2800, texture: "MARS" },
+  { mass: 3e6, radius: 140, influenceRadius: 650, type: "planet" as const, maxPull: 2000, texture: "JUPITER" },
+  { mass: 1.8e6, radius: 100, influenceRadius: 480, type: "planet" as const, maxPull: 1600, texture: "VENUS" },
+  { mass: 4e6, radius: 180, influenceRadius: 800, type: "sun" as const, maxPull: 3800, texture: "SATURNUS" },
 ];
 
 let nextPlanetId = 1000; // Start high to avoid conflicts with static wells

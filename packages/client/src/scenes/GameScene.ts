@@ -37,6 +37,9 @@ export default class GameScene extends Phaser.Scene {
   wellGfx!: Phaser.GameObjects.Graphics;
   lastWellUpdateTime = 0; // Track time for client-side planet movement prediction
 
+  // Planet sprite management
+  planetSprites = new Map<string, Phaser.GameObjects.Image>();
+
   // arena/bounds
   worldW = 4000; // overwritten by welcome
   worldH = 3000;
@@ -71,22 +74,23 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload() {
-  // Preload custom ship part textures
-  this.load.image("raketti/body0.png", new URL("../assets/raketti/body0.png", import.meta.url).toString());
-  this.load.image("raketti/wings0.png", new URL("../assets/raketti/wings0.png", import.meta.url).toString());
-  this.load.image("raketti/window0.png", new URL("../assets/raketti/window0.png", import.meta.url).toString());
-  this.load.image("raketti/point0.png", new URL("../assets/raketti/point0.png", import.meta.url).toString());
-  this.load.image("raketti/weapon0.png", new URL("../assets/raketti/weapon0.png", import.meta.url).toString());
- 
     // Preload custom ship part textures
     this.load.image("raketti/body0.png", new URL("../assets/raketti/body0.png", import.meta.url).toString());
     this.load.image("raketti/wings0.png", new URL("../assets/raketti/wings0.png", import.meta.url).toString());
     this.load.image("raketti/window0.png", new URL("../assets/raketti/window0.png", import.meta.url).toString());
     this.load.image("raketti/point0.png", new URL("../assets/raketti/point0.png", import.meta.url).toString());
+    this.load.image("raketti/weapon0.png", new URL("../assets/raketti/weapon0.png", import.meta.url).toString());
+
     // Preload heart image for HP pickups
     this.load.image("heart", new URL("../assets/muut/heart.png", import.meta.url).toString());
-    this.load.image("raketti/weapon0.png", new URL("../assets/raketti/weapon0.png", import.meta.url).toString());
- 
+
+    // Preload planet assets
+    this.load.image("EARTH", new URL("../assets/planeetat/EARTH.png", import.meta.url).toString());
+    this.load.image("JUPITER", new URL("../assets/planeetat/JUPITER.png", import.meta.url).toString());
+    this.load.image("MARS", new URL("../assets/planeetat/MARS.png", import.meta.url).toString());
+    this.load.image("NEPTUNUS", new URL("../assets/planeetat/NEPTUNUS.png", import.meta.url).toString());
+    this.load.image("SATURNUS", new URL("../assets/planeetat/SATURNUS.png", import.meta.url).toString());
+    this.load.image("VENUS", new URL("../assets/planeetat/VENUS.png", import.meta.url).toString());
   }
 
   async create() {
@@ -429,11 +433,64 @@ export default class GameScene extends Phaser.Scene {
     // Advance entity interpolation
     this.interp.step(delta / 1000, 1000 / SNAPSHOT_HZ);
 
+    // Render planet sprites
+    this.updatePlanetSprites(youI);
+
     // Draw arena and gravity overlay (use camX/camY)
     drawArenaBounds(this);
     drawGravityDebug(this);
 
     // Update bullets movement
     this.bullets.update(delta / 1000);
+  }
+
+  /** Ensure planet sprites exist and update their positions */
+  private updatePlanetSprites(youI: any) {
+    if (!youI) return;
+
+    const cx = this.scale.width / 2;
+    const cy = this.scale.height / 2;
+
+    // Track current well IDs
+    const currentWellIds = new Set(this.wells.map(w => w.id));
+
+    // Remove sprites for wells that no longer exist
+    for (const [wellId, sprite] of this.planetSprites) {
+      if (!currentWellIds.has(wellId)) {
+        sprite.destroy();
+        this.planetSprites.delete(wellId);
+      }
+    }
+
+    // Ensure sprites exist and position them
+    for (const well of this.wells) {
+      // Only render planets and suns with textures
+      if ((well.type === "planet" || well.type === "sun") && well.texture) {
+        const textureKey = well.texture;
+
+        // Ensure sprite exists - similar to pickup system
+        if (!this.planetSprites.has(well.id)) {
+          if (this.textures.exists(textureKey)) {
+            const sprite = this.add.image(0, 0, textureKey).setDepth(5);
+
+            // Scale sprite to match well radius
+            const targetDiameter = well.radius * 2;
+            const scale = targetDiameter / sprite.width;
+            sprite.setScale(scale);
+
+            this.planetSprites.set(well.id, sprite);
+          }
+        }
+
+        // Position the sprite
+        const sprite = this.planetSprites.get(well.id);
+        if (sprite) {
+          const sx = cx + (well.x - youI.x);
+          const sy = cy + (well.y - youI.y);
+          sprite.setPosition(sx, sy);
+          sprite.rotation += 0.001; // Slow rotation
+        }
+      }
+    }
   }
 }

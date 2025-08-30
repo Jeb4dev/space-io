@@ -70,6 +70,7 @@ export const ServerSnapshotSchema = z.object({
       influenceRadius: z.number(),
       type: z.enum(["planet", "sun", "blackhole"]),
       maxPull: z.number(),
+      texture: z.string().optional(), // Add texture property
     }),
   ),
   scoreboard: z.array(

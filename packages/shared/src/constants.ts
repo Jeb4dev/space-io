@@ -48,7 +48,7 @@ export const GRAVITY = {
   planetScrollSpeed: 50, // pixels per second downward movement
   wells: [
     // seeded world layout
-    { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400 },
+    { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 1400, texture: "EARTH" },
     {
       id: "sunA",
       x: 3000,
@@ -58,6 +58,7 @@ export const GRAVITY = {
       influenceRadius: 800,
       type: "sun" as const,
       maxPull: 3800,
+      texture: "VENUS" // Use Venus as sun-like appearance
     },
     {
       id: "marsA",
@@ -68,9 +69,9 @@ export const GRAVITY = {
       influenceRadius: 500,
       type: "planet" as const,
       maxPull: 2800,
-      texture: "planeetat/MARS.png"
+      texture: "MARS"
     },
-    { id: "holeA", x: 2100, y: 2300, mass: 6e6, radius: 110, influenceRadius: 950, type: "blackhole" as const, maxPull: 2600 }
+    // { id: "holeA", x: 2100, y: 2300, mass: 6e6, radius: 110, influenceRadius: 950, type: "blackhole" as const, maxPull: 2600 }
   ],
   sunHeatDps: 18,
   blackHoleEdgeDps: 40,
