@@ -18,4 +18,4 @@ dist
 .idea
 *.swp
 *.swo
-
+**/tsconfig.tsbuildinfo
