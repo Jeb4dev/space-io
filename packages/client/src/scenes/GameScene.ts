@@ -411,6 +411,8 @@ export default class GameScene extends Phaser.Scene {
         this.parallax.update(youI.vx, youI.vy, delta, this.cameras.main.zoom);
       }
       if (youI.maxHp) this.hud.setHP(youI.hp ?? 0, youI.maxHp);
+      // Update velocity display
+      this.hud.setVelocity(youI.vx, youI.vy);
     }
 
     // Bullets: place via interpolated entities
