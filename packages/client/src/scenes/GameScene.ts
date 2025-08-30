@@ -3,6 +3,7 @@ import { Net } from "@client/net/socket";
 import { NamePrompt } from "@client/ui/NamePrompt";
 import { LevelUpModal } from "@client/ui/LevelUpModal";
 import { HUD } from "@client/ui/HUD";
+import { GameOverModal } from "@client/ui/GameOverModal";
 import type { ServerSnapshot } from "@shared/messages";
 import type { WellState } from "@shared/types";
 import { Interp } from "@client/state/interp";
@@ -23,6 +24,16 @@ export default class GameScene extends Phaser.Scene {
 
   hud!: HUD;
   levelModal!: LevelUpModal;
+  gameOverModal!: GameOverModal;
+
+  // Run stats
+  runStartMs = performance.now();
+  distanceTraveled = 0;
+  maxSpeedSeen = 0;
+  lastScore = 0;
+  lastLevel = 1;
+  gameEnded = false;
+
   interp = new Interp();
   recon = new Recon();
 
@@ -115,6 +126,7 @@ export default class GameScene extends Phaser.Scene {
     this.pickups = new Pickups(this);
     this.hud = new HUD();
     this.levelModal = new LevelUpModal();
+    this.gameOverModal = new GameOverModal();
 
     this.wellGfx = this.add.graphics().setDepth(8);
     this.boundsGfx = this.add.graphics().setDepth(7); // below gravity overlay, above stars
@@ -201,6 +213,26 @@ export default class GameScene extends Phaser.Scene {
         this.createExplosion(e.x, e.y);
         // Make the victim ship fade/blink
         this.makeShipDeathEffect(e.victimId);
+        // If YOU died, end run (only once)
+        if (!this.gameEnded && e.victimId === this.net.youId) {
+          this.gameEnded = true;
+          const now = performance.now();
+          const duration = now - this.runStartMs;
+          const stats = {
+            score: this.lastScore,
+            level: this.lastLevel,
+            durationMs: duration,
+            distance: this.distanceTraveled,
+            maxSpeed: this.maxSpeedSeen,
+          };
+          this.gameOverModal.show(stats);
+          // Stop sending inputs
+          this.net.socket.disconnect();
+          // Wait for user to click respawn -> reload page to get fresh session
+          this.gameOverModal.waitRespawn().then(() => {
+            location.reload();
+          });
+        }
       } else if (e.type === "LevelUpOffer") {
         // Get current player stats to pass to modal
         const you = this.interp.get(this.net.youId || "");
@@ -300,8 +332,9 @@ export default class GameScene extends Phaser.Scene {
     if (typeof (you as any).xp === "number" && typeof (you as any).xpToNext === "number") {
       this.hud.setXP((you as any).xp, (you as any).xpToNext);
     }
-    // NEW: Update powerups panel each snapshot
-    this.hud.setPowerups(you);
+    // Track score/level for game over stats
+    if (typeof (you as any).score === 'number') this.lastScore = (you as any).score;
+    if (typeof (you as any).level === 'number') this.lastLevel = (you as any).level;
 
     // Bullets: ensure sprites now (placement each frame from interpolated entities)
     const bulletIds = new Set<string>();
@@ -400,6 +433,13 @@ export default class GameScene extends Phaser.Scene {
       this.interp.get(this.net.youId || "") ?? this.interp.current.get(this.net.youId || "");
 
     if (youI) {
+      // Update distance & max speed (only while game active)
+      if (!this.gameEnded) {
+        const speed = Math.hypot(youI.vx, youI.vy);
+        this.distanceTraveled += speed * (delta / 1000);
+        if (speed > this.maxSpeedSeen) this.maxSpeedSeen = speed;
+      }
+
       // Other players relative to interpolated you
       for (const id of this.interp.ids()) {
         const e = this.interp.get(id)!;
@@ -508,7 +548,12 @@ export default class GameScene extends Phaser.Scene {
     this.updatePlanetSprites(youI);
 
     // Draw arena and gravity overlay (use camX/camY)
-    drawArenaBounds(this);
+    if (document && (document.body.classList.contains('pre-game') || document.body.classList.contains('game-over'))) {
+      // Hide world border during name prompt or game over
+      this.boundsGfx.clear();
+    } else {
+      drawArenaBounds(this);
+    }
     drawGravityDebug(this);
 
     // Update bullets movement

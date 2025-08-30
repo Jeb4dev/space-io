@@ -32,6 +32,8 @@ export class HUD {
     this.powerupsPanel.className = "powerups-panel";
     this.powerupsPanel.innerHTML = "<h3>Powerups</h3><div class='powerups-list'></div>";
     document.body.appendChild(this.powerupsPanel);
+    // Initialize with base (all 0) so panel is never empty before first snapshot
+    this.setPowerups({});
 
     // Create velocity panel in bottom left corner
     this.velocityPanel = document.createElement("div");
@@ -84,41 +86,40 @@ export class HUD {
     const container = this.powerupsPanel.querySelector('.powerups-list') as HTMLDivElement;
     if (!container) return;
 
-    // Prefer explicit powerupLevels from server; else derive
+    const families = ["Hull", "Damage", "Engine", "FireRate", "Magnet", "Shield"] as const;
+
+    // Prefer explicit powerupLevels from server; else derive (0-based levels)
     const serverLevels = stats.powerupLevels as Record<string, number> | undefined;
 
-    const families = ["Hull", "Damage", "Engine", "FireRate", "Magnet", "Shield"] as const;
-    let list: { name: string; level: number; max: number }[] = [];
-
+    let levels: Record<string, number> = {};
     if (serverLevels) {
-      // Add 1 to display level since server uses 0-based but UI should show 1-based
-      list = families.map(name => ({ name, level: (serverLevels[name] ?? 0) + 1, max: 5 }));
+      for (const f of families) levels[f] = serverLevels[f] ?? 0;
     } else {
-      // Fallback to calculation (legacy)
-      const calc = this.calculatePowerupLevels(stats);
-      const calcMap: Record<string, number> = {};
-      for (const c of calc) calcMap[c.name] = c.level;
-      // Add 1 to display level since calculation gives 0-based but UI should show 1-based
-      list = families.map(name => ({ name, level: (calcMap[name] ?? 0) + 1, max: 5 }));
+      // Derive from stats using same math as before but keep 0-based
+      const derived = this.calculatePowerupLevelsRaw(stats); // returns array with {name, level}
+      for (const d of derived) levels[d.name] = d.level;
+      for (const f of families) if (levels[f] == null) levels[f] = 0;
     }
 
-    // Build HTML (always show all families)
-    container.innerHTML = list.map(p => `
-      <div class="powerup-item">
-        <span class="powerup-name">${p.name}</span>
-        <span class="powerup-level">Lv ${p.level}/${p.max}</span>
-      </div>`).join('');
+    // Build HTML showing all families (even 0). Internal 0-4 displayed as 1-5; internal 5 stays 5.
+    container.innerHTML = families.map(name => {
+      const lvl = Math.max(0, Math.min(5, levels[name] ?? 0)); // internal 0-5
+      const displayLvl = Math.min(5, lvl === 5 ? 5 : lvl + 1); // shift +1 except keep max at 5
+      return `<div class="powerup-item">
+        <span class="powerup-name">${name}</span>
+        <span class="powerup-level">Lv ${displayLvl}/5</span>
+      </div>`;
+    }).join('');
   }
 
-  private calculatePowerupLevels(stats: any) {
-    // Use the exact same base values as the server
+  private calculatePowerupLevelsRaw(stats: any) {
+    // Same base values
     const baseDamage = 12;     // BULLET.baseDamage
     const baseFireRate = 220;  // BULLET.cooldownMs
     const baseAccel = 700;     // PLAYER.baseAccel
     const baseMaxHp = 100;     // PLAYER.baseHP
     const baseMagnet = 100;    // PICKUPS.magnetBaseRadius
 
-    // Safely access stats with fallbacks
     const maxHp = stats.maxHp || baseMaxHp;
     const damage = stats.damage || baseDamage;
     const accel = stats.accel || baseAccel;
@@ -126,8 +127,7 @@ export class HUD {
     const magnetRadius = stats.magnetRadius || baseMagnet;
     const shield = stats.shield || 0;
 
-    // Calculate actual upgrade levels (0 = no upgrades, 1-5 = upgrade levels)
-    const powerups = [
+    const raw = [
       { name: "Hull", level: Math.round((maxHp - baseMaxHp) / 20) },
       { name: "Damage", level: Math.round((damage - baseDamage) / 4) },
       { name: "Engine", level: Math.round((accel - baseAccel) / 80) },
@@ -135,12 +135,13 @@ export class HUD {
       { name: "Magnet", level: Math.round((magnetRadius - baseMagnet) / 30) },
       { name: "Shield", level: Math.round(shield / 10) },
     ];
+    return raw.map(r => ({ ...r, level: Math.max(0, Math.min(5, r.level)) }));
+  }
 
-    // Only return powerups that have been upgraded (level > 0)
-    return powerups.filter(p => p.level > 0).map(p => ({
-      ...p,
-      level: Math.min(5, p.level) // Cap at level 5
-    }));
+  private calculatePowerupLevels(stats: any) {
+    // Deprecated: kept for backward compat (returns only upgraded). Use calculatePowerupLevelsRaw instead.
+    const raw = this.calculatePowerupLevelsRaw(stats);
+    return raw.filter(p => p.level > 0);
   }
 
   setScoreboard(entries: Array<{ name: string; score: number; level: number }>) {
