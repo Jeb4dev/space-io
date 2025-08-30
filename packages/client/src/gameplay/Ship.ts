@@ -43,12 +43,6 @@ export default class Ship {
       .circle(0, 0, ringRadius, 0x000000, 0)
       .setStrokeStyle(1.5, 0xffffff, 0.35)
       .setDepth(6);
-
-    if (showNose) {
-      const nose = scene.add.circle(0, 0, 2, 0xffffff, 0.9).setDepth(7);
-      nose.setName("nose");
-      (this.body as any).__nose = nose;
-    }
   }
 
   setPosition(x: number, y: number) {
@@ -57,7 +51,7 @@ export default class Ship {
     this.window.setPosition(x, y);
     this.point.setPosition(x, y);
     this.ring.setPosition(x, y);
-    this.#syncNose();
+  // Removed nose sync
   }
 
   setRotation(rad: number) {
@@ -66,7 +60,7 @@ export default class Ship {
     this.wings.setRotation(rad + this._angleOffsetRad);
     this.window.setRotation(rad + this._angleOffsetRad);
     this.point.setRotation(rad + this._angleOffsetRad);
-    this.#syncNose();
+  // Removed nose sync
   }
 
   setInvuln(on: boolean) {
@@ -82,8 +76,6 @@ export default class Ship {
   }
 
   destroy() {
-    const nose: Phaser.GameObjects.Arc | undefined = (this.body as any).__nose;
-    if (nose) nose.destroy();
     this.body.destroy();
     this.wings.destroy();
     this.window.destroy();
@@ -91,13 +83,5 @@ export default class Ship {
     this.ring.destroy();
   }
 
-  #syncNose() {
-    const nose: Phaser.GameObjects.Arc | undefined = (this.body as any).__nose;
-    if (!nose) return;
-    const ang = this._lastRot + this._angleOffsetRad;
-    nose.setPosition(
-      this.body.x + Math.cos(ang) * this._noseR,
-      this.body.y + Math.sin(ang) * this._noseR,
-    );
-  }
+  // Removed nose sync method
 }
