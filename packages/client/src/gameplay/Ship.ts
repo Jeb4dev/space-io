@@ -14,6 +14,7 @@ export default class Ship {
   wings: Phaser.GameObjects.Image;
   window: Phaser.GameObjects.Image;
   point: Phaser.GameObjects.Image;
+  weapon: Phaser.GameObjects.Image;
   ring: Phaser.GameObjects.Arc;
   private _angleOffsetRad: number;
   private _noseR: number;
@@ -35,6 +36,7 @@ export default class Ship {
     this.wings = scene.add.image(0, 0, "raketti/wings0.png").setOrigin(0.5, 0.5).setDepth(3).setScale(scale);
     this.window = scene.add.image(0, 0, "raketti/window0.png").setOrigin(0.5, 0.5).setDepth(4).setScale(scale);
     this.point = scene.add.image(0, 0, "raketti/point0.png").setOrigin(0.5, 0.5).setDepth(5).setScale(scale);
+    this.weapon = scene.add.image(0, 0, "raketti/weapon0.png").setOrigin(0.5, 0.5).setDepth(6).setScale(scale);
 
     // Distance from center to nose tip (scaled)
     this._noseR = this.body.width * scale * Math.min(0.5, Math.max(0, noseOffsetFactor));
@@ -43,6 +45,12 @@ export default class Ship {
       .circle(0, 0, ringRadius, 0x000000, 0)
       .setStrokeStyle(1.5, 0xffffff, 0.35)
       .setDepth(6);
+
+    if (showNose) {
+      const nose = scene.add.circle(0, 0, 2, 0xffffff, 0.9).setDepth(7);
+      nose.setName("nose");
+      (this.body as any).__nose = nose;
+    }
   }
 
   setPosition(x: number, y: number) {
@@ -50,12 +58,19 @@ export default class Ship {
     this.wings.setPosition(x, y);
     this.window.setPosition(x, y);
     this.point.setPosition(x, y);
+    this.weapon.setPosition(x, y);
     this.ring.setPosition(x, y);
   // Removed nose sync
   }
 
   setRotation(rad: number) {
     this._lastRot = rad;
+    const finalRot = rad + this._angleOffsetRad;
+    this.body.setRotation(finalRot);
+    this.wings.setRotation(finalRot);
+    this.window.setRotation(finalRot);
+    this.point.setRotation(finalRot);
+    this.weapon.setRotation(finalRot);
     this.body.setRotation(rad + this._angleOffsetRad);
     this.wings.setRotation(rad + this._angleOffsetRad);
     this.window.setRotation(rad + this._angleOffsetRad);
@@ -73,12 +88,14 @@ export default class Ship {
     this.wings.setTint(color);
     this.window.setTint(color);
     this.point.setTint(color);
+    this.weapon.setTint(color);
   }
 
   destroy() {
     this.body.destroy();
     this.wings.destroy();
     this.window.destroy();
+    this.weapon.destroy();
     this.point.destroy();
     this.ring.destroy();
   }
