@@ -342,13 +342,26 @@ body,
     padding: 14px;
   }
   .powerup-choices { grid-template-columns: 1fr; }
+
+  /* Smaller footprint on mobile */
+  .powerups-panel {
+    padding: 6px 8px;
+    font-size: 10px;
+    max-width: 44vw;
+    min-width: 140px;
+  }
+  .powerups-panel h3 { margin-bottom:4px; padding-bottom:2px; font-size:11px; }
+  .powerups-panel .powerups-list { gap:2px; }
+  .powerups-panel .powerup-item { padding:3px 5px; font-size:10px; }
+  .powerups-panel .powerup-name { font-size:10px; }
+  .powerups-panel .powerup-level { font-size:10px; }
 }
 
-/* Extra small portrait phones */
 @media (max-width: 420px) and (orientation: portrait) {
-  .bar { width: 48vw; }
-  .powerups-panel { max-width: 60vw; }
-  .velocity-panel { bottom: calc(env(safe-area-inset-bottom, 0) + 128px); }
+  /* Further compact on extra small devices */
+  .powerups-panel { padding:5px 6px; font-size:9px; max-width:58vw; }
+  .powerups-panel .powerup-item { padding:2px 4px; }
+  .powerups-panel h3 { font-size:10px; }
 }
 
 /* Landscape on small devices: move bars to top to free horizontal space for controls */

@@ -26,9 +26,9 @@ export default class Parallax {
     this.nearFactor = opts.nearFactor ?? 0.1;
     this.smoothing = opts.smoothing ?? 0.85;
 
-    // Generate textures once
-    createStarTexture(scene, "stars_far", 512, 512, 70, 1, 2); // fine dust
-    createStarTexture(scene, "stars_near", 512, 512, 40, 1, 3); // brighter stars
+    // Generate textures once (reduced star radii)
+    createStarTexture(scene, "stars_far", 512, 512, 70, 0.5, 1.2); // finer dust, smaller
+    createStarTexture(scene, "stars_near", 512, 512, 40, 0.6, 1.8); // smaller bright stars
 
     const w = scene.scale.width;
     const h = scene.scale.height;
@@ -96,9 +96,28 @@ function createStarTexture(
   const g = scene.add.graphics();
   g.fillStyle(0x000000, 1);
   g.fillRect(0, 0, w, h);
-  g.fillStyle(0xffffff, 1);
+  // Weighted palette: mostly white, some cool blue and soft purple hues
+  const palette = [
+    { color: 0xffffff, weight: 70 }, // white
+    { color: 0xbad4ff, weight: 15 }, // light blue
+    { color: 0xd2b0ff, weight: 15 }, // soft purple
+  ];
+  const totalWeight = palette.reduce((s, p) => s + p.weight, 0);
   for (let i = 0; i < count; i++) {
+    // pick color by weight
+    let rPick = Math.random() * totalWeight;
+    let chosen = palette[0].color;
+    for (const p of palette) {
+      if (rPick < p.weight) { chosen = p.color; break; }
+      rPick -= p.weight;
+    }
     const r = minR + Math.random() * (maxR - minR);
+    // Subtle, rarer halo (smaller than before)
+    if (r > 1.1 && Math.random() < 0.3) {
+      g.fillStyle(chosen, 0.18);
+      g.fillCircle(Math.random() * w, Math.random() * h, r * 1.4);
+    }
+    g.fillStyle(chosen, 1);
     g.fillCircle(Math.random() * w, Math.random() * h, r);
   }
   g.generateTexture(key, w, h);
