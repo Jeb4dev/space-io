@@ -94,3 +94,35 @@ export const randEdgeSpawn = (world: World) => {
   if (side === 2) return { x: 20, y: rndRange(0, world.h) };
   return { x: world.w - 20, y: rndRange(0, world.h) };
 };
+
+export const randSafeSpawn = (world: World) => {
+  const margin = 150; // Safe distance from arena edges
+  const wellSafeDistance = 400; // Safe distance from gravity wells
+  const maxAttempts = 50; // Prevent infinite loops
+
+  // Get gravity wells from the world
+  const wells = world.wells;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // Generate random position with margins
+    const x = rndRange(margin, world.w - margin);
+    const y = rndRange(margin, world.h - margin);
+
+    // Check if position is safe from all gravity wells
+    let isSafe = true;
+    for (const well of wells) {
+      const distance = Math.hypot(x - well.x, y - well.y);
+      if (distance < wellSafeDistance) {
+        isSafe = false;
+        break;
+      }
+    }
+
+    if (isSafe) {
+      return { x, y };
+    }
+  }
+
+  // Fallback: spawn in center if no safe position found after max attempts
+  return { x: world.w / 2, y: world.h / 2 };
+};

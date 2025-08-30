@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 import type { World, Player } from "../world.js";
 import { addPlayer, queueInput } from "../entities.js";
-import { randEdgeSpawn } from "../world.js";
+import { randSafeSpawn } from "../world.js";
 import { rndRange } from "@shared/math.js";
 
 const BOT_NAMES = [
@@ -31,7 +31,7 @@ export const spawnBot = (world: World): void => {
   if (world.players.size >= 20) return; // Don't spam too many bots
 
   const botId = nanoid();
-  const spawn = randEdgeSpawn(world);
+  const spawn = randSafeSpawn(world);
 
   // Use empty socketId for bots - they don't have real sockets
   const player = addPlayer(world, botId, spawn, "");
