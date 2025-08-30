@@ -1,22 +1,15 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "outDir": "dist",
     "rootDir": "src",
-    "declaration": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "noEmitOnError": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": "./",
+    "outDir": "dist",
+    "composite": true,
+    "baseUrl": ".",
     "paths": {
-      "@shared/*": ["src/*"]
+      "@game/shared": ["../shared/src/index.ts"],
+      "@game/shared/*": ["../shared/src/*"]
     },
-    "composite": true
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
   },
-  "include": ["src"]
+  "include": ["src/**/*"],
 }

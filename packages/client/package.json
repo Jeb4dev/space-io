@@ -1,5 +1,5 @@
 {
-  "name": "@space-io/client",
+  "name": "@game/client",
   "version": "0.1.0",
   "type": "module",
   "scripts": {
@@ -9,7 +9,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@space-io/shared": "workspace:*",
+    "@game/shared": "workspace:*",
     "phaser": "^3.80.1",
     "socket.io-client": "^4.7.5"
   },

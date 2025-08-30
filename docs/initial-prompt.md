@@ -51,7 +51,7 @@ Create a **jam‑ready, maintainable monorepo** for a browser .io game called **
 ### Deliverables / Repo layout
 
 ```
-space-io/
+game/
 ├─ package.json               # workspaces + scripts
 ├─ pnpm-workspace.yaml
 ├─ turbo.json                 # optional: pipeline cache (ok to include)
