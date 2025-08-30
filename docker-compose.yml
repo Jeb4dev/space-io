@@ -24,7 +24,7 @@ services:
               pnpm --filter @game/client build &&
               pnpm --filter @game/client preview --host 0.0.0.0 --port 5173"
     ports:
-      - "15173:5173"
+      - "5173:5173"
     depends_on: [server]
     networks: [space]
 
