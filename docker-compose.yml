@@ -18,7 +18,6 @@ services:
       - ./package.json:/app/package.json
       - ./tsconfig.json:/app/tsconfig.json
       - ./tsconfig.base.json:/app/tsconfig.base.json
-      - ./pnpm-lock.yaml:/app/pnpm-lock.yaml
     command: >
       sh -lc "corepack enable &&
               pnpm install &&
