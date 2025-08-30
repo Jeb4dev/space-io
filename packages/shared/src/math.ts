@@ -1,4 +1,4 @@
-import type { V2 } from "./types.js";
+import type { V2 } from "./types.ts";
 
 export const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 

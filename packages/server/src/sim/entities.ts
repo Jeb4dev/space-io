@@ -1,10 +1,10 @@
 import { nanoid } from "nanoid";
-import { WORLD, PLAYER, BULLET, PICKUPS, POWERUPS, ALT_FIRE } from "@shared/constants.js";
-import { TICK_HZ } from "@shared/constants.js";
+import { WORLD, PLAYER, BULLET, PICKUPS, POWERUPS, ALT_FIRE } from "@game/shared";
+import { TICK_HZ } from "@game/shared";
 import type { World, Player, Bullet, Pickup } from "./world.js";
-import { clamp, dist2, rndRange } from "@shared/math.js";
+import { clamp, dist2, rndRange } from "@game/shared";
 import { ioSnapshot } from "./loop.js";
-import type { PowerupChoice, PowerupFamily } from "@shared/types.js";
+import type { PowerupChoice, PowerupFamily } from "@game/shared";
 
 export const addPlayer = (
   world: World,
