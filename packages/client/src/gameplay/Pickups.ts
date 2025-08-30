@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 
 type PickupType = "xp" | "hp";
-type PickupSprite = Phaser.GameObjects.Arc | Phaser.GameObjects.Container;
+type PickupSprite = Phaser.GameObjects.Arc | Phaser.GameObjects.Container | Phaser.GameObjects.Image;
 
 interface StardustParticle {
   gfx: Phaser.GameObjects.Graphics;
@@ -63,14 +63,13 @@ export default class Pickups {
       }
       return;
     }
-    // Only hp is a circle now
-    const col = 0xff5b7b;
-    let s = this.byId.get(id);
-    if (!s) {
-      s = this.scene.add.circle(0, 0, 8, col).setDepth(2);
-      this.byId.set(id, s);
-    } else if (s instanceof Phaser.GameObjects.Arc) {
-      (s.fillColor as any) = col;
+    // Only hp is a heart image now
+    if (type === "hp") {
+      if (!this.byId.has(id)) {
+        const img = this.scene.add.image(0, 0, "heart").setDepth(2).setDisplaySize(24, 24);
+        this.byId.set(id, img);
+      }
+      return;
     }
   }
 
