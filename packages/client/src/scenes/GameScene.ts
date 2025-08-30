@@ -176,7 +176,9 @@ export default class GameScene extends Phaser.Scene {
 
     this.net.onEvent(async (e) => {
       if (e.type === "LevelUpOffer") {
-        const choice = await this.levelModal.choose(e.choices);
+        // Get current player stats to pass to modal
+        const you = this.interp.get(this.net.youId || "");
+        const choice = await this.levelModal.choose(e.choices, you);
         this.net.choosePowerup(choice);
       }
     });
@@ -249,6 +251,9 @@ export default class GameScene extends Phaser.Scene {
     if (typeof (you as any).xp === "number" && typeof (you as any).xpToNext === "number") {
       this.hud.setXP((you as any).xp, (you as any).xpToNext);
     }
+
+    // Update powerups display
+    this.hud.setPowerups(you);
 
     // Bullets: ensure sprites now (placement each frame from interpolated entities)
     const bulletIds = new Set<string>();
