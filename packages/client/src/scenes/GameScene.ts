@@ -213,6 +213,9 @@ export default class GameScene extends Phaser.Scene {
     // HUD
     this.hud.setScoreboard(s.scoreboard);
     if (you.maxHp) this.hud.setHP(you.hp ?? 0, you.maxHp);
+    if (typeof (you as any).xp === "number" && typeof (you as any).xpToNext === "number") {
+      this.hud.setXP((you as any).xp, (you as any).xpToNext);
+    }
 
     // Bullets: ensure sprites now (placement each frame from interpolated entities)
     const bulletIds = new Set<string>();
