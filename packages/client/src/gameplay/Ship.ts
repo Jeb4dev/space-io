@@ -51,7 +51,7 @@ export default class Ship {
 
     this.ring = scene.add
       .circle(0, 0, ringRadius, 0x000000, 0)
-      .setStrokeStyle(1.5, 0xffffff, 0.35)
+      .setStrokeStyle(1.5, 0xffffff, 0)
       .setDepth(6);
 
     if (showNose) {
