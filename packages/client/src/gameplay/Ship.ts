@@ -15,10 +15,12 @@ export default class Ship {
   window: Phaser.GameObjects.Image;
   point: Phaser.GameObjects.Image;
   weapon: Phaser.GameObjects.Image;
+  thruster: Phaser.GameObjects.Sprite;
   ring: Phaser.GameObjects.Arc;
   private _angleOffsetRad: number;
   private _noseR: number;
   private _lastRot = 0;
+  private _scale: number;
 
   constructor(scene: Phaser.Scene, opts: ShipOpts = {}) {
     this.scene = scene;
@@ -30,6 +32,7 @@ export default class Ship {
       noseOffsetFactor = 0.48,
     } = opts;
     this._angleOffsetRad = angleOffsetRad;
+    this._scale = scale;
 
     // Create each part, body at the bottom
     this.body = scene.add.image(0, 0, "raketti/body0.png").setOrigin(0.5, 0.5).setDepth(2).setScale(scale);
@@ -37,6 +40,11 @@ export default class Ship {
     this.window = scene.add.image(0, 0, "raketti/window0.png").setOrigin(0.5, 0.5).setDepth(4).setScale(scale);
     this.point = scene.add.image(0, 0, "raketti/point0.png").setOrigin(0.5, 0.5).setDepth(5).setScale(scale);
     this.weapon = scene.add.image(0, 0, "raketti/weapon0.png").setOrigin(0.5, 0.5).setDepth(6).setScale(scale);
+
+    // Create thruster sprite behind the ship
+    this.thruster = scene.add.sprite(0, 0, "fire/fire0.png").setOrigin(0.5, 0.5).setDepth(1).setScale(scale);
+    this.thruster.play('fire_thruster');
+    this.thruster.setVisible(false); // Hidden by default
 
     // Distance from center to nose tip (scaled)
     this._noseR = this.body.width * scale * Math.min(0.5, Math.max(0, noseOffsetFactor));
@@ -60,6 +68,13 @@ export default class Ship {
     this.point.setPosition(x, y);
     this.weapon.setPosition(x, y);
     this.ring.setPosition(x, y);
+    
+    // Position thruster behind the ship based on rotation
+    const thrusterDistance = 15; // Distance behind the ship center (increased from 45)
+    const angle = this._lastRot + Math.PI; // Opposite direction of ship's movement
+    const thrusterX = x + Math.cos(angle) * thrusterDistance;
+    const thrusterY = y + Math.sin(angle) * thrusterDistance;
+    this.thruster.setPosition(thrusterX, thrusterY);
   // Removed nose sync
   }
 
@@ -71,10 +86,7 @@ export default class Ship {
     this.window.setRotation(finalRot);
     this.point.setRotation(finalRot);
     this.weapon.setRotation(finalRot);
-    this.body.setRotation(rad + this._angleOffsetRad);
-    this.wings.setRotation(rad + this._angleOffsetRad);
-    this.window.setRotation(rad + this._angleOffsetRad);
-    this.point.setRotation(rad + this._angleOffsetRad);
+    this.thruster.setRotation(finalRot);
   // Removed nose sync
   }
 
@@ -89,6 +101,11 @@ export default class Ship {
     this.window.setTint(color);
     this.point.setTint(color);
     this.weapon.setTint(color);
+    this.thruster.setTint(color);
+  }
+
+  setThrusterVisible(visible: boolean) {
+    this.thruster.setVisible(visible);
   }
 
   destroy() {
@@ -97,6 +114,7 @@ export default class Ship {
     this.window.destroy();
     this.weapon.destroy();
     this.point.destroy();
+    this.thruster.destroy();
     this.ring.destroy();
   }
 
