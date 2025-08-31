@@ -195,6 +195,9 @@ export default class GameScene extends Phaser.Scene {
     this.wellGfx = this.add.graphics().setDepth(8);
     this.boundsGfx = this.add.graphics().setDepth(7);
 
+    // Set default camera zoom for better visibility
+    this.cameras.main.setZoom(0.9); // Zoom out slightly for better field of view
+
     // Create fire animation
     if (!this.anims.exists('fire_thruster')) {
       this.anims.create({
@@ -231,8 +234,8 @@ export default class GameScene extends Phaser.Scene {
           this.cameras.main.centerOn(0, 0);
         }
       } else {
-        // Reset camera to normal view - center on screen center
-        this.cameras.main.setZoom(1);
+        // Reset camera to normal view - center on screen center with default zoom
+        this.cameras.main.setZoom(0.9); // Use default zoom level
         this.cameras.main.centerOn(this.scale.width / 2, this.scale.height / 2);
       }
     });
