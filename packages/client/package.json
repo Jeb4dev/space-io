@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "prod": "vite build && vite preview --host --port 5174",
+    "prod": "vite build && vite preview --host --port 5173",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit"
