@@ -190,12 +190,12 @@ export const applyLevelChoice = (
   } else if (choice.family === "FireRate" && choice.tier) {
     if (p.powerupLevels.FireRate < 5) {
       p.powerupLevels.FireRate++;
-      p.fireCooldownMs = Math.max(80, p.fireCooldownMs - 25);
+      p.fireCooldownMs = Math.max(80, p.fireCooldownMs - 30);
     }
   } else if (choice.family === "Magnet" && choice.tier) {
     if (p.powerupLevels.Magnet < 5) {
       p.powerupLevels.Magnet++;
-      p.magnetRadius += 30;
+      p.magnetRadius += 45;
     }
   } else if (choice.family === "Radar" && choice.tier) {
     if (p.powerupLevels.Radar < 5) {
