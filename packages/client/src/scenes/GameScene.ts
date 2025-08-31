@@ -303,7 +303,18 @@ export default class GameScene extends Phaser.Scene {
     }
 
     // Start connecting (resolves on 'welcome'), register handlers, then join, then await welcome
-    const connectP = this.net.connect(import.meta.env.VITE_SERVER_URL || "http://localhost:8080");
+    const rawUrl = (import.meta.env as any).VITE_SERVER_URL || window.location.origin;
+    let serverUrl: string = rawUrl;
+    // If page is https but URL is http, upgrade to avoid mixed content block
+    if (window.location.protocol === 'https:' && rawUrl.startsWith('http://')) {
+      serverUrl = 'https://' + rawUrl.substring('http://'.length);
+    }
+    // Final sanity: ensure it has protocol
+    if (!/^https?:\/\//i.test(serverUrl)) {
+      serverUrl = window.location.origin;
+    }
+    console.log('[net] connecting to', serverUrl);
+    const connectP = this.net.connect(serverUrl);
 
     this.net.onEvent(async (e) => {
       if (e.type === 'Kill') {
