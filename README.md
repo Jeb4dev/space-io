@@ -5,7 +5,7 @@ pnpm i
 
 pnpm dev
 
-Server listens on http://localhost:8080
+Server listens on http://localhost:8008
 Client on http://localhost:5173
 
 --

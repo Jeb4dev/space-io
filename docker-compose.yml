@@ -5,7 +5,7 @@ services:
       dockerfile: packages/server/Dockerfile
     env_file: ./.env.example
     ports:
-      - "8080:8080"
+      - "8008:8008"
     networks: [space]
 
   client:

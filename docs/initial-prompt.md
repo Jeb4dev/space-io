@@ -160,7 +160,7 @@ space-io/
 
 - TypeScript strict mode on everywhere.
 - ESLint + Prettier configured and passing.
-- Running `pnpm dev` should: start server on `localhost:8080` and client on `localhost:5173`, with CORS allowed.
+- Running `pnpm dev` should: start server on `localhost:8008` and client on `localhost:5173`, with CORS allowed.
 - 1 room, up to 16 players.
 - Ship, pickups, gravity wells, bullets, damage, death/respawn, level‑up choices (functional, even with placeholder art).
 
