@@ -17,8 +17,8 @@ const parseOrigins = (v: string | undefined, fallback: string[]) => {
 
 export const config = {
   host: process.env.HOST ?? "0.0.0.0",
-  // default to 8081 because Nginx proxies there
-  port: n(process.env.PORT, 8081),
+  // default to 8080 to align with nginx proxy_pass 127.0.0.1:8080
+  port: n(process.env.PORT, 8080),
 
   tickHz: n(process.env.TICK_HZ, TICK_HZ),
   snapshotHz: n(process.env.SNAPSHOT_HZ, SNAPSHOT_HZ),
@@ -33,5 +33,13 @@ export const config = {
   botsEnabled: (process.env.BOTS_ENABLED ?? "false").toLowerCase() === "true",
 
   // Public URL of the WS server (used only if you reference it elsewhere)
-  publicUrl: process.env.PUBLIC_URL ?? "http://localhost:8081",
+  publicUrl: process.env.PUBLIC_URL ?? "http://localhost:8080",
 } as const;
+
+export const describeConfig = () => ({
+  port: config.port,
+  host: config.host,
+  corsOrigins: config.corsOrigins,
+  publicUrl: config.publicUrl,
+  botsEnabled: config.botsEnabled,
+});
