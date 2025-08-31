@@ -46,8 +46,7 @@ export default class GameScene extends Phaser.Scene {
   debugWellsOn = true;
   debugFullView = false; // New debug flag for full arena view
   wellGfx!: Phaser.GameObjects.Graphics;
-  lastWellUpdateTime = 0; // Track time for client-side planet movement prediction
-  
+
   // Radar upgrade tracking for zoom functionality
   radarLevel = 0;
 
@@ -657,40 +656,7 @@ export default class GameScene extends Phaser.Scene {
       }
     }
 
-    // Client-side planet movement prediction - move planets independently of server updates
-    // This ensures smooth constant movement regardless of player position or server lag
-    const currentTime = performance.now();
-    if (this.lastWellUpdateTime === 0) {
-      this.lastWellUpdateTime = currentTime;
-    }
-
-    const timeDelta = (currentTime - this.lastWellUpdateTime) / 1000; // Convert to seconds
-    const planetScrollSpeed = 50; // Match server GRAVITY.planetScrollSpeed
-
-    // Move planets down at constant speed on client side
-    for (const well of this.wells) {
-      if (well.type === "planet" || well.type === "sun") {
-        well.y += planetScrollSpeed * timeDelta;
-      }
-    }
-
-    this.lastWellUpdateTime = currentTime;
-
-    // Interpolate wells (planets) between snapshots for smooth movement
-    // This is now only used for correction, not primary movement
-    for (const well of this.wells) {
-      const wellAny = well as any;
-      if (wellAny._prevX !== undefined && wellAny._prevY !== undefined) {
-        wellAny._interpAlpha = Math.min(1, wellAny._interpAlpha + delta / (1000 / SNAPSHOT_HZ));
-
-        // Only apply small corrections, don't override the client-side prediction
-        const serverX = wellAny._prevX + (well.x - wellAny._prevX) * wellAny._interpAlpha;
-        // Apply gentle correction if there's a significant difference
-        const correctionStrength = 0.1; // 10% correction per frame
-        well.x = well.x + (serverX - well.x) * correctionStrength;
-        // Don't correct Y position as we're predicting movement
-      }
-    }
+    // Removed client-side planet movement prediction & correction; rely on server authoritative well positions
 
     // Camera anchor for debug drawers
     if (youI) {
