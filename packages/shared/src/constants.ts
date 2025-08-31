@@ -54,7 +54,7 @@ export const GRAVITY = {
     maxSpeedMultiplier: 1.5,     // cap scaling from speed
   },
   wells: [
-    { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 280, texture: "EARTH" },
+    { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 500, type: "planet" as const, maxPull: 150, texture: "EARTH" },
     {
       id: "sunA",
       x: 3000,
@@ -72,7 +72,7 @@ export const GRAVITY = {
       y: 1800,
       mass: 2.5e6,
       radius: 110,
-      influenceRadius: 500,
+      influenceRadius: 400,
       type: "planet" as const,
       maxPull: 150,
       texture: "MARS"
@@ -82,10 +82,10 @@ export const GRAVITY = {
       x: 3000,
       y: 1800,
       mass: 2.5e5,
-      radius: 80,
-      influenceRadius: 150,
+      radius: 120,
+      influenceRadius: 400,
       type: "planet" as const,
-      maxPull: 35,
+      maxPull: 150,
       texture: "NEPTUNUS"
     },
     {
@@ -93,10 +93,10 @@ export const GRAVITY = {
       x: 600,
       y: 1000,
       mass: 2.5e5,
-      radius: 80,
-      influenceRadius: 150,
+      radius: 130,
+      influenceRadius: 500,
       type: "planet" as const,
-      maxPull: 35,
+      maxPull: 200,
       texture: "SATURNUS"
     },
     {
@@ -105,9 +105,9 @@ export const GRAVITY = {
       y: 1800,
       mass: 2.5e5,
       radius: 80,
-      influenceRadius: 150,
+      influenceRadius: 400,
       type: "planet" as const,
-      maxPull: 35,
+      maxPull: 150,
       texture: "VENUS"
     },
   ],
