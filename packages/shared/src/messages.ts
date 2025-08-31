@@ -108,6 +108,8 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
     type: z.literal("Kill"), 
     killerId: z.string().nullable(), 
     victimId: z.string(),
+    victimScore: z.number().optional(),
+    victimLevel: z.number().optional(),
     x: z.number(),
     y: z.number(),
   }),

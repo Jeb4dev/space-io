@@ -342,8 +342,8 @@ export default class GameScene extends Phaser.Scene {
           const now = performance.now();
           const duration = now - this.runStartMs;
           const stats = {
-            score: this.lastScore,
-            level: this.lastLevel,
+            score: e.victimScore || this.lastScore, // Use score from kill event if available
+            level: e.victimLevel || this.lastLevel, // Use level from kill event if available
             durationMs: duration,
             distance: this.distanceTraveled,
             maxSpeed: this.maxSpeedSeen,

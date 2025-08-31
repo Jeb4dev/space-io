@@ -87,6 +87,8 @@ export const handlePlayerCollisions = (world: World, dt: number): void => {
               type: "Kill",
               killerId: p2.id,
               victimId: p1.id,
+              victimScore: p1.score,
+              victimLevel: p1.level,
               x: p1.x,
               y: p1.y,
             });
@@ -98,6 +100,8 @@ export const handlePlayerCollisions = (world: World, dt: number): void => {
               type: "Kill", 
               killerId: p1.id,
               victimId: p2.id,
+              victimScore: p2.score,
+              victimLevel: p2.level,
               x: p2.x,
               y: p2.y,
             });

@@ -27,6 +27,8 @@ export const applyGravity = (world: World, dt: number) => {
             type: "Kill",
             killerId: null, // Environmental death
             victimId: p.id,
+            victimScore: p.score,
+            victimLevel: p.level,
             x: p.x,
             y: p.y,
           });
@@ -42,6 +44,8 @@ export const applyGravity = (world: World, dt: number) => {
             type: "Kill",
             killerId: null, // Environmental death
             victimId: p.id,
+            victimScore: p.score,
+            victimLevel: p.level,
             x: p.x,
             y: p.y,
           });
@@ -67,6 +71,8 @@ export const applyGravity = (world: World, dt: number) => {
               type: "Kill",
               killerId: null, // Environmental death
               victimId: p.id,
+              victimScore: p.score,
+              victimLevel: p.level,
               x: p.x,
               y: p.y,
             });
@@ -168,6 +174,8 @@ export const bulletHits = (world: World, dt: number, now: number) => {
               type: "Kill",
               killerId: b.ownerId,
               victimId: p.id,
+              victimScore: p.score,
+              victimLevel: p.level,
               x: p.x,
               y: p.y,
             });

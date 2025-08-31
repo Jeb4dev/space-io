@@ -8,7 +8,7 @@ export const PLAYER = {
   mass: 1,
   baseAccel: 700, // px/s^2
   baseMaxSpeed: 300, // px/s
-  baseHP: 125
+  baseHP: 125,
   invulnMs: 2000,
 };
 
