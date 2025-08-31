@@ -442,6 +442,8 @@ export const spawnPickupsIfNeeded = (world: World) => {
 
 export const collectPickups = (world: World) => {
   for (const p of world.players.values()) {
+  // Dead players (hp <= 0) should not attract or collect pickups
+  if (p.hp <= 0) continue;
     for (const k of world.pickups.keys()) {
       const pu = world.pickups.get(k)!;
       // magnet

@@ -1,6 +1,7 @@
 import type { World, Player, Bullet } from "../world.js";
 import { GRAVITY } from "@shared/constants.js";
 import { clamp, dist2 } from "@shared/math.js";
+import { spawnDeathPickups } from "./deathDrops.js";
 
 export const applyGravity = (world: World, dt: number) => {
   for (const p of world.players.values()) {
@@ -29,6 +30,7 @@ export const applyGravity = (world: World, dt: number) => {
             x: p.x,
             y: p.y,
           });
+          spawnDeathPickups(world, p);
         }
       }
       if (w.type === "blackhole" && d < w.radius + 40) {
@@ -43,6 +45,7 @@ export const applyGravity = (world: World, dt: number) => {
             x: p.x,
             y: p.y,
           });
+          spawnDeathPickups(world, p);
         }
       }
       if (w.type === "planet" && d < w.radius + p.r) {
@@ -134,6 +137,7 @@ export const bulletHits = (world: World, dt: number, now: number) => {
               y: p.y,
             });
           }
+          spawnDeathPickups(world, p);
         }
         break;
       }
