@@ -83,6 +83,7 @@ export default class GameScene extends Phaser.Scene {
   // Audio
   menuMusic!: Phaser.Sound.BaseSound; // start & end screens
   gameMusic!: Phaser.Sound.BaseSound; // in-game background
+  playerName = '';
 
   constructor() {
     super("Game");
@@ -125,51 +126,67 @@ export default class GameScene extends Phaser.Scene {
     this.load.audio("gameMusic", new URL("../assets/sounds/ambient-space-fantasy-music-for-mindful-escapism-141536.mp3", import.meta.url).toString());
   }
 
-  async create() {
+  async create(data?: { playerName?: string }) {
+    // Reset or initialize core state each (re)create
+    this.runStartMs = performance.now();
+    this.distanceTraveled = 0;
+    this.maxSpeedSeen = 0;
+    this.lastScore = 0;
+    this.lastLevel = 1;
+    this.gameEnded = false;
+    this.wells = [];
+    this.pickPrev = new Map();
+    this.pickCurr = new Map();
+    this.pickAlpha = 1;
+    this.ships = new Map();
+    this.planetSprites.forEach(s => s.destroy());
+    this.planetSprites = new Map();
+
+    // Fresh Net instance every restart
+    this.net = new Net();
+
     (window as any).net = this.net;
-    this.cameras.main.setBackgroundColor("#05070b");
+    this.cameras.main.setBackgroundColor('#05070b');
 
-    this.parallax = new Parallax(this);
-    this.bullets = new Projectiles(this);
-    this.pickups = new Pickups(this);
-    this.hud = new HUD();
-    this.levelModal = new LevelUpModal();
-    this.gameOverModal = new GameOverModal();
+    // Reuse existing HUD/overlays on restart; only construct if first time
+    if (!this.hud || !data?.playerName) {
+      this.parallax = new Parallax(this);
+      this.bullets = new Projectiles(this);
+      this.pickups = new Pickups(this);
+      this.hud = new HUD();
+      this.levelModal = new LevelUpModal();
+      this.gameOverModal = new GameOverModal();
+    } else {
+      // Ensure HUD cleared
+      this.hud.setScoreboard([]);
+    }
 
-    // Init audio (50% volume)
-    this.menuMusic = this.sound.add("menuMusic", { loop: true, volume: 0 }); // start muted
-    this.gameMusic = this.sound.add("gameMusic", { loop: true, volume: 0.5 });
+    // Audio setup (re-create sounds each time to avoid overlap)
+    this.menuMusic = this.sound.add('menuMusic', { loop: true, volume: 0 });
+    this.gameMusic = this.sound.add('gameMusic', { loop: true, volume: 0.5 });
     (this.menuMusic as any).setVolume?.(0);
     (this.gameMusic as any).setVolume?.(0.5);
 
-    // Autoplay muted, then fade up once unlocked / playable
     let menuFadedIn = false;
     const fadeInMenu = () => {
       if (menuFadedIn) return;
       menuFadedIn = true;
-      this.fadeSound(this.menuMusic, 0, 0.5, 1500, false);
+      this.fadeSound(this.menuMusic, 0, 0.5, 800, false);
     };
 
     if ((this.sound as any).locked) {
-      // Will play once unlocked
       this.sound.once(Phaser.Sound.Events.UNLOCKED, () => {
-        if (!this.menuMusic.isPlaying) {
-          try { this.menuMusic.play(); } catch {/* ignore */}
-        }
+        if (!this.menuMusic.isPlaying) { try { this.menuMusic.play(); } catch {} }
         fadeInMenu();
       });
-      try { this.menuMusic.play(); } catch {/* likely locked */}
+      try { this.menuMusic.play(); } catch {}
     } else {
-      try { if (!this.menuMusic.isPlaying) this.menuMusic.play(); } catch {/* ignore */}
+      try { if (!this.menuMusic.isPlaying) this.menuMusic.play(); } catch {}
       fadeInMenu();
     }
 
     this.wellGfx = this.add.graphics().setDepth(8);
-    this.boundsGfx = this.add.graphics().setDepth(7); // below gravity overlay, above stars
-    this.input.keyboard?.on("keydown-F3", () => {
-      this.debugWellsOn = !this.debugWellsOn;
-      this.wellGfx.clear();
-    });
+    this.boundsGfx = this.add.graphics().setDepth(7);
 
     // Debug key "I" to toggle full arena view
     this.input.keyboard?.on("keydown-I", () => {
@@ -236,18 +253,25 @@ export default class GameScene extends Phaser.Scene {
     });
     // We compute aim/thrust every frame in update() now.
 
-    // Ask for player name (no callback needed now; music already attempted)
-    const prompt = new NamePrompt();
-    const name = await prompt.getName();
-
-    // Switch to gameplay music after name entered
-    this.fadeToGameMusic();
+    // Ask for player name (skip prompt on restart)
+    let name: string;
+    if (data?.playerName) {
+      name = data.playerName;
+      this.playerName = name;
+      // Immediately start game music (skip menu linger)
+      this.fadeToGameMusic();
+    } else {
+      const prompt = new NamePrompt();
+      name = await prompt.getName();
+      this.playerName = name;
+      this.fadeToGameMusic();
+    }
 
     // Start connecting (resolves on 'welcome'), register handlers, then join, then await welcome
     const connectP = this.net.connect(import.meta.env.VITE_SERVER_URL || "http://localhost:8080");
 
     this.net.onEvent(async (e) => {
-      if (e.type === "Kill") {
+      if (e.type === 'Kill') {
         // Create explosion effect at death location
         this.createExplosion(e.x, e.y);
         // Make the victim ship fade/blink
@@ -269,17 +293,16 @@ export default class GameScene extends Phaser.Scene {
           this.net.socket.disconnect();
           // Wait for user to click respawn -> reload page to get fresh session
           this.gameOverModal.waitRespawn().then(() => {
-            location.reload();
+            this.handleRespawn();
           });
-          // Switch back to menu music on game over
           this.fadeToMenuMusic();
         }
-      } else if (e.type === "LevelUpOffer") {
+      } else if (e.type === 'LevelUpOffer') {
         // Get current player stats to pass to modal
         const you = this.interp.get(this.net.youId || "");
         const choice = await this.levelModal.choose(e.choices, you);
         this.net.choosePowerup(choice);
-      } else if (e.type === "LevelUpApplied") {
+      } else if (e.type === 'LevelUpApplied') {
         // Update ship textures when stats change
         const updated = (e as any).updated;
         const ship = this.ships.get(this.net.youId!);
@@ -750,14 +773,22 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
+  private handleRespawn() {
+    // Stop sounds to avoid overlap
+    try { this.menuMusic?.stop(); } catch {}
+    try { this.gameMusic?.stop(); } catch {}
+    // Restart scene with stored player name
+    this.scene.restart({ playerName: this.playerName });
+  }
+
   private fadeToGameMusic() {
     if (this.menuMusic?.isPlaying) {
-      this.fadeSound(this.menuMusic, 0.5, 0, 1000, true);
+      this.fadeSound(this.menuMusic, 0.5, 0, 600, true);
     }
     if (this.gameMusic && !this.gameMusic.isPlaying) {
       (this.gameMusic as any).setVolume?.(0);
       this.gameMusic.play();
-      this.fadeSound(this.gameMusic, 0, 0.5, 1500, false);
+      this.fadeSound(this.gameMusic, 0, 0.5, 900, false);
     }
   }
 
