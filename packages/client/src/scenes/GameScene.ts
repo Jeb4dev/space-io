@@ -173,16 +173,17 @@ export default class GameScene extends Phaser.Scene {
     (window as any).net = this.net;
     this.cameras.main.setBackgroundColor('#05070b');
 
-    // Reuse existing HUD/overlays on restart; only construct if first time
-    if (!this.hud || !data?.playerName) {
-      this.parallax = new Parallax(this);
-      this.bullets = new Projectiles(this);
-      this.pickups = new Pickups(this);
+    // ALWAYS recreate gameplay display-object based managers (their GameObjects were destroyed on scene restart)
+    this.parallax = new Parallax(this);
+    this.bullets = new Projectiles(this);
+    this.pickups = new Pickups(this);
+
+    // Reuse HUD / modals if they already exist (they manage DOM/overlays), otherwise create once
+    if (!this.hud) {
       this.hud = new HUD();
       this.levelModal = new LevelUpModal();
       this.gameOverModal = new GameOverModal();
     } else {
-      // Ensure HUD cleared
       this.hud.setScoreboard([]);
     }
 
