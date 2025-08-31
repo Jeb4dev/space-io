@@ -6,8 +6,10 @@ export class NamePrompt {
   private counter!: HTMLSpanElement;
   private errorEl!: HTMLDivElement;
   private readonly maxLen = 24;
+  private onShow?: () => void;
 
-  constructor() {
+  constructor(onShow?: () => void) {
+    this.onShow = onShow;
     const overlay = document.createElement("div");
     overlay.className = "ui-overlay";
     const modal = document.createElement("div");
@@ -113,6 +115,7 @@ export class NamePrompt {
   async getName(): Promise<string> {
     this.root.style.display = 'flex';
     document.body.classList.add('pre-game');
+    this.onShow?.();
     // Focus next tick to ensure in DOM
     setTimeout(() => this.input.focus(), 0);
     return new Promise((res) => {

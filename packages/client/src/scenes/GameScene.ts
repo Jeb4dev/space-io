@@ -80,6 +80,10 @@ export default class GameScene extends Phaser.Scene {
 
   touchFireBtn!: HTMLDivElement;
 
+  // Audio
+  menuMusic!: Phaser.Sound.BaseSound; // start & end screens
+  gameMusic!: Phaser.Sound.BaseSound; // in-game background
+
   constructor() {
     super("Game");
   }
@@ -115,6 +119,10 @@ export default class GameScene extends Phaser.Scene {
     this.load.image("NEPTUNUS", new URL("../assets/planeetat/NEPTUNUS.png", import.meta.url).toString());
     this.load.image("SATURNUS", new URL("../assets/planeetat/SATURNUS.png", import.meta.url).toString());
     this.load.image("VENUS", new URL("../assets/planeetat/VENUS.png", import.meta.url).toString());
+
+    // Audio assets
+    this.load.audio("menuMusic", new URL("../assets/sounds/space-ambient-351305.mp3", import.meta.url).toString());
+    this.load.audio("gameMusic", new URL("../assets/sounds/ambient-space-fantasy-music-for-mindful-escapism-141536.mp3", import.meta.url).toString());
   }
 
   async create() {
@@ -127,6 +135,34 @@ export default class GameScene extends Phaser.Scene {
     this.hud = new HUD();
     this.levelModal = new LevelUpModal();
     this.gameOverModal = new GameOverModal();
+
+    // Init audio (50% volume)
+    this.menuMusic = this.sound.add("menuMusic", { loop: true, volume: 0 }); // start muted
+    this.gameMusic = this.sound.add("gameMusic", { loop: true, volume: 0.5 });
+    (this.menuMusic as any).setVolume?.(0);
+    (this.gameMusic as any).setVolume?.(0.5);
+
+    // Autoplay muted, then fade up once unlocked / playable
+    let menuFadedIn = false;
+    const fadeInMenu = () => {
+      if (menuFadedIn) return;
+      menuFadedIn = true;
+      this.fadeSound(this.menuMusic, 0, 0.5, 1500, false);
+    };
+
+    if ((this.sound as any).locked) {
+      // Will play once unlocked
+      this.sound.once(Phaser.Sound.Events.UNLOCKED, () => {
+        if (!this.menuMusic.isPlaying) {
+          try { this.menuMusic.play(); } catch {/* ignore */}
+        }
+        fadeInMenu();
+      });
+      try { this.menuMusic.play(); } catch {/* likely locked */}
+    } else {
+      try { if (!this.menuMusic.isPlaying) this.menuMusic.play(); } catch {/* ignore */}
+      fadeInMenu();
+    }
 
     this.wellGfx = this.add.graphics().setDepth(8);
     this.boundsGfx = this.add.graphics().setDepth(7); // below gravity overlay, above stars
@@ -200,9 +236,12 @@ export default class GameScene extends Phaser.Scene {
     });
     // We compute aim/thrust every frame in update() now.
 
-    // Ask for player name
+    // Ask for player name (no callback needed now; music already attempted)
     const prompt = new NamePrompt();
     const name = await prompt.getName();
+
+    // Switch to gameplay music after name entered
+    this.fadeToGameMusic();
 
     // Start connecting (resolves on 'welcome'), register handlers, then join, then await welcome
     const connectP = this.net.connect(import.meta.env.VITE_SERVER_URL || "http://localhost:8080");
@@ -232,6 +271,8 @@ export default class GameScene extends Phaser.Scene {
           this.gameOverModal.waitRespawn().then(() => {
             location.reload();
           });
+          // Switch back to menu music on game over
+          this.fadeToMenuMusic();
         }
       } else if (e.type === "LevelUpOffer") {
         // Get current player stats to pass to modal
@@ -523,8 +564,6 @@ export default class GameScene extends Phaser.Scene {
 
         // Only apply small corrections, don't override the client-side prediction
         const serverX = wellAny._prevX + (well.x - wellAny._prevX) * wellAny._interpAlpha;
-        const serverY = wellAny._prevY + (well.y - wellAny._prevY) * wellAny._interpAlpha;
-
         // Apply gentle correction if there's a significant difference
         const correctionStrength = 0.1; // 10% correction per frame
         well.x = well.x + (serverX - well.x) * correctionStrength;
@@ -627,7 +666,6 @@ export default class GameScene extends Phaser.Scene {
     
     for (let i = 0; i < particleCount; i++) {
       const angle = (i / particleCount) * Math.PI * 2;
-      const speed = 200 + Math.random() * 100;
       const distance = 20 + Math.random() * explosionRadius;
       
       // Create particle
@@ -708,6 +746,42 @@ export default class GameScene extends Phaser.Scene {
             });
           }
         });
+      }
+    });
+  }
+
+  private fadeToGameMusic() {
+    if (this.menuMusic?.isPlaying) {
+      this.fadeSound(this.menuMusic, 0.5, 0, 1000, true);
+    }
+    if (this.gameMusic && !this.gameMusic.isPlaying) {
+      (this.gameMusic as any).setVolume?.(0);
+      this.gameMusic.play();
+      this.fadeSound(this.gameMusic, 0, 0.5, 1500, false);
+    }
+  }
+
+  private fadeToMenuMusic() {
+    if (this.gameMusic?.isPlaying) {
+      this.fadeSound(this.gameMusic, 0.5, 0, 800, true);
+    }
+    if (this.menuMusic && !this.menuMusic.isPlaying) {
+      (this.menuMusic as any).setVolume?.(0);
+      this.menuMusic.play();
+      this.fadeSound(this.menuMusic, 0, 0.5, 1200, false);
+    }
+  }
+
+  private fadeSound(sound: Phaser.Sound.BaseSound, from: number, to: number, duration: number, stopOnZero: boolean) {
+    const proxy = { v: from };
+    (sound as any).setVolume?.(from);
+    this.tweens.add({
+      targets: proxy,
+      v: to,
+      duration,
+      onUpdate: () => (sound as any).setVolume?.(proxy.v),
+      onComplete: () => {
+        if (stopOnZero && to === 0) sound.stop();
       }
     });
   }
