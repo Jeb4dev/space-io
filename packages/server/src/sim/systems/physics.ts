@@ -1,5 +1,5 @@
 import type { World, Player, Bullet } from "../world.js";
-import { GRAVITY } from "@shared/constants.js";
+import { GRAVITY, PLAYER } from "@shared/constants.js";
 import { clamp, dist2 } from "@shared/math.js";
 import { spawnDeathPickups } from "./deathDrops.js";
 
@@ -22,7 +22,7 @@ export const applyGravity = (world: World, dt: number) => {
         const prevHp = p.hp;
         p.hp -= GRAVITY.sunHeatDps * dt;
         if (prevHp > 0 && p.hp <= 0) {
-          p.deadUntil = Date.now() + 500;
+          p.deadUntil = Date.now() + PLAYER.respawnDelayMs;
           world.io?.emit("event", {
             type: "Kill",
             killerId: null, // Environmental death
@@ -39,7 +39,7 @@ export const applyGravity = (world: World, dt: number) => {
         const prevHp = p.hp;
         p.hp -= GRAVITY.blackHoleEdgeDps * dt;
         if (prevHp > 0 && p.hp <= 0) {
-          p.deadUntil = Date.now() + 500;
+          p.deadUntil = Date.now() + PLAYER.respawnDelayMs;
           world.io?.emit("event", {
             type: "Kill",
             killerId: null, // Environmental death
@@ -66,7 +66,7 @@ export const applyGravity = (world: World, dt: number) => {
           
           // Check for death
           if (prevHp > 0 && p.hp <= 0) {
-            p.deadUntil = Date.now() + 500;
+            p.deadUntil = Date.now() + PLAYER.respawnDelayMs;
             world.io?.emit("event", {
               type: "Kill",
               killerId: null, // Environmental death
@@ -166,7 +166,7 @@ export const bulletHits = (world: World, dt: number, now: number) => {
         p.hp -= b.damage;
         if (!b.pierce) toRemove.push(b.id);
         if (p.hp <= 0) {
-          p.deadUntil = now + 500;
+          p.deadUntil = now + PLAYER.respawnDelayMs;
           // Emit kill event for explosion effect
           const socket = world.io?.sockets.sockets.get(p.socketId);
           if (socket) {

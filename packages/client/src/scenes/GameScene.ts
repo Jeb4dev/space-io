@@ -42,6 +42,9 @@ export default class GameScene extends Phaser.Scene {
   pickups!: Pickups;
   parallax!: Parallax;
 
+  // Track ships playing death animations to prevent premature cleanup
+  dyingShips = new Set<string>();
+
   wells: WellState[] = [];
   debugWellsOn = true;
   debugFullView = false; // New debug flag for full arena view
@@ -158,6 +161,7 @@ export default class GameScene extends Phaser.Scene {
     this.pickCurr = new Map();
     this.pickAlpha = 1;
     this.ships = new Map();
+    this.dyingShips.clear();
     this.radarLevel = 0; // Reset radar level for new game
     this.planetSprites.forEach(s => s.destroy());
     this.planetSprites = new Map();
@@ -525,7 +529,7 @@ export default class GameScene extends Phaser.Scene {
     }
     const ids = new Set(s.entities.filter((e) => e.kind === "player").map((e) => e.id));
     for (const [id, ship] of this.ships) {
-      if (!ids.has(id)) {
+      if (!ids.has(id) && !this.dyingShips.has(id)) {
         ship.destroy();
         this.ships.delete(id);
       }
@@ -805,6 +809,9 @@ export default class GameScene extends Phaser.Scene {
     const ship = this.ships.get(victimId);
     if (!ship) return;
 
+    // Mark ship as dying to prevent cleanup during animation
+    this.dyingShips.add(victimId);
+
     // Hide thruster immediately on death
     ship.setThrusterVisible(false);
 
@@ -828,6 +835,17 @@ export default class GameScene extends Phaser.Scene {
           duration: 600, // Increased from 300 to 600
           ease: 'Power2',
           onComplete: () => {
+            // Remove from dying ships set and clean up
+            this.dyingShips.delete(victimId);
+            // If the ship is no longer in the active ships (respawned), destroy the old one
+            if (this.ships.has(victimId)) {
+              const currentShip = this.ships.get(victimId);
+              if (currentShip === ship) {
+                // This is still the same ship object, so it hasn't respawned yet
+                ship.destroy();
+                this.ships.delete(victimId);
+              }
+            }
             // Reset alpha and scale in case ship respawns
             shipParts.forEach(part => {
               if (part && !part.scene) return; // Skip if destroyed
