@@ -48,7 +48,32 @@ export const applyGravity = (world: World, dt: number) => {
           spawnDeathPickups(world, p);
         }
       }
-      if (w.type === "planet" && d < w.radius + p.r) {
+      if (w.type === "planet" && d < w.radius + p.r + 30) { // Increased collision radius by 30
+        // Apply collision damage based on impact speed
+        const impactSpeed = Math.hypot(p.vx, p.vy);
+        const damageThreshold = 80; // Minimum speed to cause damage
+        const prevHp = p.hp;
+        
+        if (impactSpeed > damageThreshold) {
+          const baseDamage = 15;
+          const speedMultiplier = Math.min(2.5, impactSpeed / 150); // Cap damage multiplier
+          const damage = baseDamage * speedMultiplier;
+          p.hp -= damage;
+          
+          // Check for death
+          if (prevHp > 0 && p.hp <= 0) {
+            p.deadUntil = Date.now() + 500;
+            world.io?.emit("event", {
+              type: "Kill",
+              killerId: null, // Environmental death
+              victimId: p.id,
+              x: p.x,
+              y: p.y,
+            });
+            spawnDeathPickups(world, p);
+          }
+        }
+        
         // hard collision bounce
         const nx = dx / d,
           ny = dy / d;
@@ -56,9 +81,9 @@ export const applyGravity = (world: World, dt: number) => {
         if (vDotN > 0) continue;
         p.vx -= 1.8 * vDotN * nx;
         p.vy -= 1.8 * vDotN * ny;
-        // clip outside
-        p.x = w.x - nx * (w.radius + p.r + 1);
-        p.y = w.y - ny * (w.radius + p.r + 1);
+        // clip outside (using the larger collision radius)
+        p.x = w.x - nx * (w.radius + p.r + 30 + 1);
+        p.y = w.y - ny * (w.radius + p.r + 30 + 1);
       }
     }
   }
