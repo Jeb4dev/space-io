@@ -70,21 +70,21 @@ export function drawGravityDebug(ctx: DebugCtx): void {
     const colInfl = w.type === "planet" ? 0x81c784 : w.type === "sun" ? 0xffecb3 : 0xce93d8;
 
     // Influence radius
-    g.lineStyle(1, colInfl, 0.7);
-    g.strokeCircle(sx, sy, w.influenceRadius);
+    // g.lineStyle(1, colInfl, 0.7);
+    // g.strokeCircle(sx, sy, w.influenceRadius);
 
     // Core
-    g.fillStyle(colCore, 0.25);
-    g.fillCircle(sx, sy, w.radius);
+    // g.fillStyle(colCore, 0.25);
+    // g.fillCircle(sx, sy, w.radius);
 
     // Hazard rings
-    if (w.type === "sun") {
-      g.lineStyle(2, 0xff7043, 0.9);
-      g.strokeCircle(sx, sy, w.radius + 60);
-    } else if (w.type === "blackhole") {
-      g.lineStyle(2, 0xe91e63, 0.9);
-      g.strokeCircle(sx, sy, w.radius + 40);
-    }
+    // if (w.type === "sun") {
+    //   g.lineStyle(2, 0xff7043, 0.9);
+    //   g.strokeCircle(sx, sy, w.radius + 60);
+    // } else if (w.type === "blackhole") {
+    //   g.lineStyle(2, 0xe91e63, 0.9);
+    //   g.strokeCircle(sx, sy, w.radius + 40);
+    // }
 
     // Net accel contribution if inside influence
     const dx = w.x - camX;

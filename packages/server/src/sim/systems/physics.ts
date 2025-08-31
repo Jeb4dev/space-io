@@ -1,6 +1,6 @@
-import type { World, Player, Bullet } from "../world.js";
+import type { World } from "../world.js";
 import { GRAVITY, PLAYER } from "@shared/constants.js";
-import { clamp, dist2 } from "@shared/math.js";
+import { dist2 } from "@shared/math.js";
 import { spawnDeathPickups } from "./deathDrops.js";
 
 export const applyGravity = (world: World, dt: number) => {
@@ -53,23 +53,19 @@ export const applyGravity = (world: World, dt: number) => {
         }
       }
       if (w.type === "planet" && d < w.radius + p.r + 30) { // Increased collision radius by 30
-        // Apply collision damage based on impact speed
+        // Damage-over-time based on impact speed (no instant large chunk)
         const impactSpeed = Math.hypot(p.vx, p.vy);
-        const damageThreshold = 80; // Minimum speed to cause damage
-        const prevHp = p.hp;
-        
-        if (impactSpeed > damageThreshold) {
-          const baseDamage = 5; // Reduced from 15 to 5
-          const speedMultiplier = Math.min(1.5, impactSpeed / 200); // Reduced multiplier and increased speed requirement
-          const damage = baseDamage * speedMultiplier;
+        const { speedThreshold, baseDps, maxSpeedMultiplier } = GRAVITY.planetCollision;
+        if (impactSpeed > speedThreshold) {
+          const speedFactor = Math.min(maxSpeedMultiplier, impactSpeed / speedThreshold);
+          const damage = baseDps * speedFactor * dt; // DPS scaled by speed and frame time
+          const prevHp = p.hp;
           p.hp -= damage;
-          
-          // Check for death
           if (prevHp > 0 && p.hp <= 0) {
             p.deadUntil = Date.now() + PLAYER.respawnDelayMs;
             world.io?.emit("event", {
               type: "Kill",
-              killerId: null, // Environmental death
+              killerId: null,
               victimId: p.id,
               victimScore: p.score,
               victimLevel: p.level,
@@ -79,7 +75,6 @@ export const applyGravity = (world: World, dt: number) => {
             spawnDeathPickups(world, p);
           }
         }
-        
         // hard collision bounce
         const nx = dx / d,
           ny = dy / d;
@@ -119,26 +114,22 @@ export const integrate = (world: World, dt: number) => {
     // Left
     if (p.x < p.r) {
       p.x = p.r;
-      const speed = Math.max(minBounceSpeed, Math.abs(p.vx) * bounceRestitution);
-      p.vx = speed; // push right
+      p.vx = Math.max(minBounceSpeed, Math.abs(p.vx) * bounceRestitution); // push right
     }
     // Right
     if (p.x > world.w - p.r) {
       p.x = world.w - p.r;
-      const speed = Math.max(minBounceSpeed, Math.abs(p.vx) * bounceRestitution);
-      p.vx = -speed; // push left
+      p.vx = -Math.max(minBounceSpeed, Math.abs(p.vx) * bounceRestitution); // push left
     }
     // Top
     if (p.y < p.r) {
       p.y = p.r;
-      const speed = Math.max(minBounceSpeed, Math.abs(p.vy) * bounceRestitution);
-      p.vy = speed; // push down
+      p.vy = Math.max(minBounceSpeed, Math.abs(p.vy) * bounceRestitution); // push down
     }
     // Bottom
     if (p.y > world.h - p.r) {
       p.y = world.h - p.r;
-      const speed = Math.max(minBounceSpeed, Math.abs(p.vy) * bounceRestitution);
-      p.vy = -speed; // push up
+      p.vy = -Math.max(minBounceSpeed, Math.abs(p.vy) * bounceRestitution); // push up
     }
   }
   for (const b of world.bullets.values()) {

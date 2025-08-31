@@ -682,6 +682,15 @@ export default class GameScene extends Phaser.Scene {
     // Advance entity interpolation
     this.interp.step(delta / 1000, 1000 / SNAPSHOT_HZ);
 
+    // NEW: advance planet (well) interpolation alpha per well for smooth motion
+    const wellStep = delta / (1000 / SNAPSHOT_HZ);
+    for (const w of this.wells) {
+      const anyW: any = w as any;
+      if (anyW._interpAlpha !== undefined && anyW._interpAlpha < 1) {
+        anyW._interpAlpha = Math.min(1, anyW._interpAlpha + wellStep);
+      }
+    }
+
     // Render planet sprites
     this.updatePlanetSprites(youI);
 
@@ -716,31 +725,31 @@ export default class GameScene extends Phaser.Scene {
       }
     }
 
-    // Ensure sprites exist and position them
+    // Ensure sprites exist and position them (with interpolation between snapshots)
     for (const well of this.wells) {
-      // Only render planets and suns with textures
       if ((well.type === "planet" || well.type === "sun") && well.texture) {
         const textureKey = well.texture;
-
-        // Ensure sprite exists - similar to pickup system
         if (!this.planetSprites.has(well.id)) {
           if (this.textures.exists(textureKey)) {
-            const sprite = this.add.image(0, 0, textureKey).setDepth(1); // Below everything (ships 1000+, bullets 5)
-
+            const sprite = this.add.image(0, 0, textureKey).setDepth(1);
             // Scale sprite to match well radius
             const targetDiameter = well.radius * 2;
             const scale = targetDiameter / sprite.width;
             sprite.setScale(scale);
-
             this.planetSprites.set(well.id, sprite);
           }
         }
-
-        // Position the sprite
         const sprite = this.planetSprites.get(well.id);
         if (sprite) {
-          const sx = cx + (well.x - youI.x);
-          const sy = cy + (well.y - youI.y);
+          // Interpolated position using previous snapshot data (attached in onSnapshot)
+          const anyW: any = well as any;
+          const prevX = anyW._prevX ?? well.x;
+            const prevY = anyW._prevY ?? well.y;
+            const a = anyW._interpAlpha ?? 1;
+            const ix = prevX + (well.x - prevX) * a;
+            const iy = prevY + (well.y - prevY) * a;
+          const sx = cx + (ix - youI.x);
+          const sy = cy + (iy - youI.y);
           sprite.setPosition(sx, sy);
           sprite.rotation += 0.001; // Slow rotation
         }
