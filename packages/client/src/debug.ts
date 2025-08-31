@@ -100,15 +100,15 @@ export function drawGravityDebug(ctx: DebugCtx): void {
 
   // Draw net gravity arrow
   const mag = Math.hypot(ax, ay);
-  if (mag > 0.0001) {
-    const scaleLen = 0.03;
-    const len = Math.min(140, mag * scaleLen);
+  if (mag > 0) {
+    const scaleLen = 0.07;
+    const len = Math.min(250, Math.max(40, mag * scaleLen)); // Even longer arrow with minimum length of 40px
     const nx = ax / mag;
     const ny = ay / mag;
     const ex = cx + nx * len;
     const ey = cy + ny * len;
 
-    g.lineStyle(3, 0xffffff, 0.9);
+    g.lineStyle(1.5, 0xffffff, 0.9);
     g.beginPath();
     g.moveTo(cx, cy);
     g.lineTo(ex, ey);
