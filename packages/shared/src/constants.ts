@@ -38,7 +38,7 @@ export const PICKUPS = {
   targetCount: 100,
   xpValueRange: [40, 80],
   hpOrbChance: 0.08,
-  hpOrbValue: 25,
+  hpOrbValue: 100,
   magnetBaseRadius: 100,
 };
 
