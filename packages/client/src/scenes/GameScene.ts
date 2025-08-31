@@ -82,7 +82,7 @@ export default class GameScene extends Phaser.Scene {
   space!: Phaser.Input.Keyboard.Key; // Spacebar to fire
   alwaysThrust = false; // Desktop: always thrust toward pointer
   isThrusting = false; // Mobile: thrust while touching
-  touchFireHeld = false; // Mobile FIRE button
+  touchFireHeld = false; // Mobile FIRE button (toggle state)
 
   touchFireBtn!: HTMLDivElement;
 
@@ -156,6 +156,7 @@ export default class GameScene extends Phaser.Scene {
     this.lastScore = 0;
     this.lastLevel = 1;
     this.gameEnded = false;
+    this.touchFireHeld = false; // Reset touch fire toggle state
     this.wells = [];
     this.pickPrev = new Map();
     this.pickCurr = new Map();
@@ -262,9 +263,16 @@ export default class GameScene extends Phaser.Scene {
     this.touchFireBtn.className = "touch-fire";
     this.touchFireBtn.innerText = "FIRE";
     document.body.appendChild(this.touchFireBtn);
-    this.touchFireBtn.onpointerdown = () => (this.touchFireHeld = true);
-    this.touchFireBtn.onpointerup = () => (this.touchFireHeld = false);
-    this.touchFireBtn.onpointercancel = () => (this.touchFireHeld = false);
+    this.touchFireBtn.onpointerdown = () => {
+      this.touchFireHeld = !this.touchFireHeld; // Toggle fire state
+      this.updateTouchFireButton();
+    };
+    // Remove pointerup and pointercancel handlers since we're using toggle
+    this.touchFireBtn.onpointerup = () => {};
+    this.touchFireBtn.onpointercancel = () => {};
+    
+    // Initialize button appearance
+    this.updateTouchFireButton();
 
     // Input mode: desktop vs mobile
     const isDesktop = this.sys.game.device.os.desktop;
@@ -900,5 +908,12 @@ export default class GameScene extends Phaser.Scene {
         if (stopOnZero && to === 0) sound.stop();
       }
     });
+  }
+
+  private updateTouchFireButton() {
+    if (!this.touchFireBtn) return;
+    // Update button appearance based on toggle state
+    this.touchFireBtn.style.backgroundColor = this.touchFireHeld ? '#ff6600' : '';
+    this.touchFireBtn.innerText = this.touchFireHeld ? "STOP" : "FIRE";
   }
 }
