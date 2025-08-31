@@ -395,21 +395,32 @@ export const moveAndClamp = (p: Player, dt: number) => {
   p.vy *= damping;
   p.x += p.vx * dt;
   p.y += p.vy * dt;
-  if (p.x < 0 + p.r) {
+  // World edge bounce
+  const bounceRestitution = 0.9; // energy retained (1 = perfect, <1 loses speed)
+  const minBounceSpeed = 140; // ensure a noticeable kick away
+  // Left
+  if (p.x < p.r) {
     p.x = p.r;
-    p.vx = 0;
+    const speed = Math.max(minBounceSpeed, Math.abs(p.vx) * bounceRestitution);
+    p.vx = speed; // push right
   }
-  if (p.y < 0 + p.r) {
-    p.y = p.r;
-    p.vy = 0;
-  }
+  // Right
   if (p.x > WORLD.w - p.r) {
     p.x = WORLD.w - p.r;
-    p.vx = 0;
+    const speed = Math.max(minBounceSpeed, Math.abs(p.vx) * bounceRestitution);
+    p.vx = -speed; // push left
   }
+  // Top
+  if (p.y < p.r) {
+    p.y = p.r;
+    const speed = Math.max(minBounceSpeed, Math.abs(p.vy) * bounceRestitution);
+    p.vy = speed; // push down
+  }
+  // Bottom
   if (p.y > WORLD.h - p.r) {
     p.y = WORLD.h - p.r;
-    p.vy = 0;
+    const speed = Math.max(minBounceSpeed, Math.abs(p.vy) * bounceRestitution);
+    p.vy = -speed; // push up
   }
 };
 

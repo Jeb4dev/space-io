@@ -42,7 +42,7 @@ export default class Ship {
     this.weapon = scene.add.image(0, 0, "raketti/weapon0.png").setOrigin(0.5, 0.5).setDepth(6).setScale(scale);
 
     // Create thruster sprite behind the ship
-    this.thruster = scene.add.sprite(0, 0, "fire/fire0.png").setOrigin(0.5, 0.5).setDepth(1).setScale(scale);
+    this.thruster = scene.add.sprite(0, 0, "fire/fire0.png").setOrigin(0.5, 0.5).setDepth(1.5).setScale(scale);
     this.thruster.play('fire_thruster');
     this.thruster.setVisible(false); // Hidden by default
 
