@@ -697,7 +697,7 @@ export default class GameScene extends Phaser.Scene {
         // Ensure sprite exists - similar to pickup system
         if (!this.planetSprites.has(well.id)) {
           if (this.textures.exists(textureKey)) {
-            const sprite = this.add.image(0, 0, textureKey).setDepth(5);
+            const sprite = this.add.image(0, 0, textureKey).setDepth(1); // Below everything (ships 1000+, bullets 5)
 
             // Scale sprite to match well radius
             const targetDiameter = well.radius * 2;
