@@ -10,6 +10,7 @@ export const PLAYER = {
   baseMaxSpeed: 300, // px/s
   baseHP: 125,
   invulnMs: 2000,
+  respawnDelayMs: 0,
 };
 
 export const BULLET = {
@@ -46,6 +47,12 @@ export const GRAVITY = {
   epsilon: 2000,
   maxPull: 300,
   planetScrollSpeed: 50,
+  // Planet collision damage tuning so impacts are damage-over-time instead of instant large chunks
+  planetCollision: {
+    speedThreshold: 80,          // no damage below this impact speed
+    baseDps: 40,                 // base DPS applied once threshold exceeded
+    maxSpeedMultiplier: 1.5,     // cap scaling from speed
+  },
   wells: [
     { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 500, type: "planet" as const, maxPull: 150, texture: "EARTH" },
     {

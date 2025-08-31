@@ -42,6 +42,9 @@ export default class GameScene extends Phaser.Scene {
   pickups!: Pickups;
   parallax!: Parallax;
 
+  // Track ships playing death animations to prevent premature cleanup
+  dyingShips = new Set<string>();
+
   wells: WellState[] = [];
   debugWellsOn = true;
   debugFullView = false; // New debug flag for full arena view
@@ -79,7 +82,7 @@ export default class GameScene extends Phaser.Scene {
   space!: Phaser.Input.Keyboard.Key; // Spacebar to fire
   alwaysThrust = false; // Desktop: always thrust toward pointer
   isThrusting = false; // Mobile: thrust while touching
-  touchFireHeld = false; // Mobile FIRE button
+  touchFireHeld = false; // Mobile FIRE button (toggle state)
 
   touchFireBtn!: HTMLDivElement;
 
@@ -153,11 +156,13 @@ export default class GameScene extends Phaser.Scene {
     this.lastScore = 0;
     this.lastLevel = 1;
     this.gameEnded = false;
+    this.touchFireHeld = false; // Reset touch fire toggle state
     this.wells = [];
     this.pickPrev = new Map();
     this.pickCurr = new Map();
     this.pickAlpha = 1;
     this.ships = new Map();
+    this.dyingShips.clear();
     this.radarLevel = 0; // Reset radar level for new game
     this.planetSprites.forEach(s => s.destroy());
     this.planetSprites = new Map();
@@ -258,9 +263,16 @@ export default class GameScene extends Phaser.Scene {
     this.touchFireBtn.className = "touch-fire";
     this.touchFireBtn.innerText = "FIRE";
     document.body.appendChild(this.touchFireBtn);
-    this.touchFireBtn.onpointerdown = () => (this.touchFireHeld = true);
-    this.touchFireBtn.onpointerup = () => (this.touchFireHeld = false);
-    this.touchFireBtn.onpointercancel = () => (this.touchFireHeld = false);
+    this.touchFireBtn.onpointerdown = () => {
+      this.touchFireHeld = !this.touchFireHeld; // Toggle fire state
+      this.updateTouchFireButton();
+    };
+    // Remove pointerup and pointercancel handlers since we're using toggle
+    this.touchFireBtn.onpointerup = () => {};
+    this.touchFireBtn.onpointercancel = () => {};
+    
+    // Initialize button appearance
+    this.updateTouchFireButton();
 
     // Input mode: desktop vs mobile
     const isDesktop = this.sys.game.device.os.desktop;
@@ -525,7 +537,7 @@ export default class GameScene extends Phaser.Scene {
     }
     const ids = new Set(s.entities.filter((e) => e.kind === "player").map((e) => e.id));
     for (const [id, ship] of this.ships) {
-      if (!ids.has(id)) {
+      if (!ids.has(id) && !this.dyingShips.has(id)) {
         ship.destroy();
         this.ships.delete(id);
       }
@@ -670,6 +682,15 @@ export default class GameScene extends Phaser.Scene {
     // Advance entity interpolation
     this.interp.step(delta / 1000, 1000 / SNAPSHOT_HZ);
 
+    // NEW: advance planet (well) interpolation alpha per well for smooth motion
+    const wellStep = delta / (1000 / SNAPSHOT_HZ);
+    for (const w of this.wells) {
+      const anyW: any = w as any;
+      if (anyW._interpAlpha !== undefined && anyW._interpAlpha < 1) {
+        anyW._interpAlpha = Math.min(1, anyW._interpAlpha + wellStep);
+      }
+    }
+
     // Render planet sprites
     this.updatePlanetSprites(youI);
 
@@ -704,31 +725,31 @@ export default class GameScene extends Phaser.Scene {
       }
     }
 
-    // Ensure sprites exist and position them
+    // Ensure sprites exist and position them (with interpolation between snapshots)
     for (const well of this.wells) {
-      // Only render planets and suns with textures
       if ((well.type === "planet" || well.type === "sun") && well.texture) {
         const textureKey = well.texture;
-
-        // Ensure sprite exists - similar to pickup system
         if (!this.planetSprites.has(well.id)) {
           if (this.textures.exists(textureKey)) {
-            const sprite = this.add.image(0, 0, textureKey).setDepth(1); // Below everything (ships 1000+, bullets 5)
-
+            const sprite = this.add.image(0, 0, textureKey).setDepth(1);
             // Scale sprite to match well radius
             const targetDiameter = well.radius * 2;
             const scale = targetDiameter / sprite.width;
             sprite.setScale(scale);
-
             this.planetSprites.set(well.id, sprite);
           }
         }
-
-        // Position the sprite
         const sprite = this.planetSprites.get(well.id);
         if (sprite) {
-          const sx = cx + (well.x - youI.x);
-          const sy = cy + (well.y - youI.y);
+          // Interpolated position using previous snapshot data (attached in onSnapshot)
+          const anyW: any = well as any;
+          const prevX = anyW._prevX ?? well.x;
+            const prevY = anyW._prevY ?? well.y;
+            const a = anyW._interpAlpha ?? 1;
+            const ix = prevX + (well.x - prevX) * a;
+            const iy = prevY + (well.y - prevY) * a;
+          const sx = cx + (ix - youI.x);
+          const sy = cy + (iy - youI.y);
           sprite.setPosition(sx, sy);
           sprite.rotation += 0.001; // Slow rotation
         }
@@ -805,6 +826,9 @@ export default class GameScene extends Phaser.Scene {
     const ship = this.ships.get(victimId);
     if (!ship) return;
 
+    // Mark ship as dying to prevent cleanup during animation
+    this.dyingShips.add(victimId);
+
     // Hide thruster immediately on death
     ship.setThrusterVisible(false);
 
@@ -828,6 +852,17 @@ export default class GameScene extends Phaser.Scene {
           duration: 600, // Increased from 300 to 600
           ease: 'Power2',
           onComplete: () => {
+            // Remove from dying ships set and clean up
+            this.dyingShips.delete(victimId);
+            // If the ship is no longer in the active ships (respawned), destroy the old one
+            if (this.ships.has(victimId)) {
+              const currentShip = this.ships.get(victimId);
+              if (currentShip === ship) {
+                // This is still the same ship object, so it hasn't respawned yet
+                ship.destroy();
+                this.ships.delete(victimId);
+              }
+            }
             // Reset alpha and scale in case ship respawns
             shipParts.forEach(part => {
               if (part && !part.scene) return; // Skip if destroyed
@@ -882,5 +917,12 @@ export default class GameScene extends Phaser.Scene {
         if (stopOnZero && to === 0) sound.stop();
       }
     });
+  }
+
+  private updateTouchFireButton() {
+    if (!this.touchFireBtn) return;
+    // Update button appearance based on toggle state
+    this.touchFireBtn.style.backgroundColor = this.touchFireHeld ? '#ff6600' : '';
+    this.touchFireBtn.innerText = this.touchFireHeld ? "STOP" : "FIRE";
   }
 }

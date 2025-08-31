@@ -1,5 +1,6 @@
 import type { World, Player } from "../world.js";
 import { spawnDeathPickups } from "./deathDrops.js";
+import { PLAYER } from "@shared/constants.js";
 
 export const handlePlayerCollisions = (world: World, dt: number): void => {
   const players = Array.from(world.players.values());
@@ -82,7 +83,7 @@ export const handlePlayerCollisions = (world: World, dt: number): void => {
 
           // Emit explosion events for any players that died
           if (p1.hp <= 0) {
-            p1.deadUntil = now + 500;
+            p1.deadUntil = now + PLAYER.respawnDelayMs;
             world.io?.emit("event", {
               type: "Kill",
               killerId: p2.id,
@@ -95,7 +96,7 @@ export const handlePlayerCollisions = (world: World, dt: number): void => {
             spawnDeathPickups(world, p1);
           }
           if (p2.hp <= 0) {
-            p2.deadUntil = now + 500;
+            p2.deadUntil = now + PLAYER.respawnDelayMs;
             world.io?.emit("event", {
               type: "Kill", 
               killerId: p1.id,
