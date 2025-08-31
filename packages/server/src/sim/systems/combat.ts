@@ -9,9 +9,9 @@ export const handleDeathsAndRespawn = (world: World, now: number) => {
     // Safety: if deadUntil not set (some death path missed), set & spawn drops now
     if (!p.deadUntil) {
       spawnDeathPickups(world, p);
-      p.deadUntil = now + 500;
+      p.deadUntil = now + PLAYER.respawnDelayMs;
     }
-    if (!p.deadUntil) p.deadUntil = now + 500;
+    if (!p.deadUntil) p.deadUntil = now + PLAYER.respawnDelayMs;
     if (now >= p.deadUntil) {
       const pos = randEdgeSpawn(world);
       p.x = pos.x;

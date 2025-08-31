@@ -92,26 +92,28 @@ export const ioSnapshot = (io: Server, world: World) => {
     if (!p.socketId) continue; // Skip bots - they don't have sockets
 
     const ents = [
-      ...Array.from(world.players.values()).map((op) => ({
-        id: op.id,
-        kind: "player",
-        x: op.x,
-        y: op.y,
-        vx: op.vx,
-        vy: op.vy,
-        r: op.r,
-        hp: op.hp,
-        maxHp: op.maxHp,
-        xp: op.xp,
-        xpToNext: op.xpToNext,
-        damage: op.damage,
-        maxSpeed: op.maxSpeed,
-        accel: op.accel,
-        magnetRadius: op.magnetRadius,
-        fireCooldownMs: op.fireCooldownMs,
-        powerupLevels: op.powerupLevels,
-        shield: op.shield,
-      })),
+      ...Array.from(world.players.values())
+        .filter((op) => op.hp > 0) // Only include alive players in snapshot
+        .map((op) => ({
+          id: op.id,
+          kind: "player",
+          x: op.x,
+          y: op.y,
+          vx: op.vx,
+          vy: op.vy,
+          r: op.r,
+          hp: op.hp,
+          maxHp: op.maxHp,
+          xp: op.xp,
+          xpToNext: op.xpToNext,
+          damage: op.damage,
+          maxSpeed: op.maxSpeed,
+          accel: op.accel,
+          magnetRadius: op.magnetRadius,
+          fireCooldownMs: op.fireCooldownMs,
+          powerupLevels: op.powerupLevels,
+          shield: op.shield,
+        })),
       ...Array.from(world.bullets.values()).map((b) => ({
         id: b.id,
         kind: "bullet",
