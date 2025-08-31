@@ -126,6 +126,7 @@ export default class GameScene extends Phaser.Scene {
     this.load.image("MARS", new URL("../assets/planeetat/MARS.png", import.meta.url).toString());
     this.load.image("NEPTUNUS", new URL("../assets/planeetat/NEPTUNUS.png", import.meta.url).toString());
     this.load.image("SATURNUS", new URL("../assets/planeetat/SATURNUS.png", import.meta.url).toString());
+    this.load.image("SUN", new URL("../assets/planeetat/SUN.png", import.meta.url).toString());
     this.load.image("VENUS", new URL("../assets/planeetat/VENUS.png", import.meta.url).toString());
 
     // Audio assets

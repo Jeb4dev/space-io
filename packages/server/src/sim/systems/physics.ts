@@ -55,8 +55,8 @@ export const applyGravity = (world: World, dt: number) => {
         const prevHp = p.hp;
         
         if (impactSpeed > damageThreshold) {
-          const baseDamage = 15;
-          const speedMultiplier = Math.min(2.5, impactSpeed / 150); // Cap damage multiplier
+          const baseDamage = 5; // Reduced from 15 to 5
+          const speedMultiplier = Math.min(1.5, impactSpeed / 200); // Reduced multiplier and increased speed requirement
           const damage = baseDamage * speedMultiplier;
           p.hp -= damage;
           
