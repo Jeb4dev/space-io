@@ -1,3 +1,4 @@
+// @client/net/socket.ts
 import { io, Socket } from "socket.io-client";
 import type { ClientInput, ServerSnapshot, ServerEvent, ServerWelcome } from "@shared/messages";
 import {
@@ -13,15 +14,39 @@ export class Net {
   lastAckSeq = 0;
 
   connect(url: string) {
-    this.socket = io(url, { transports: ["websocket"] });
-    return new Promise<ServerWelcome>((resolve) => {
-      this.socket.on("welcome", (msg: ServerWelcome) => {
+    // TIP while debugging: comment out transports to allow polling fallback,
+    // then re-enable websocket-only when you're confident WS upgrades work.
+    this.socket = io(url, {
+      path: "/socket.io",          // must match server + Nginx
+      // transports: ["websocket"], // optional: force WS only
+      withCredentials: true,       // only matters if you later use cookies
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 500,
+      reconnectionDelayMax: 2000,
+    });
+
+    // helpful logging while you test
+    this.socket.on("connect", () => console.log("[net] connected", this.socket.id));
+    this.socket.on("disconnect", (r) => console.log("[net] disconnect:", r));
+    this.socket.on("connect_error", (err: any) => {
+      console.error("[net] connect_error:", err?.message ?? err, err?.data);
+    });
+
+    return new Promise<ServerWelcome>((resolve, reject) => {
+      const onWelcome = (msg: ServerWelcome) => {
         const ok = ServerWelcomeSchema.safeParse(msg);
-        if (ok.success) {
-          this.youId = ok.data.youId;
-          resolve(ok.data);
-        }
-      });
+        if (!ok.success) return;
+        this.youId = ok.data.youId;
+        this.socket.off("connect_error", onErr);
+        resolve(ok.data);
+      };
+      const onErr = (err: any) => {
+        this.socket.off("welcome", onWelcome);
+        reject(err);
+      };
+      this.socket.once("welcome", onWelcome);
+      this.socket.once("connect_error", onErr);
     });
   }
 
