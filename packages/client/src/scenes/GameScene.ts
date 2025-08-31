@@ -47,6 +47,9 @@ export default class GameScene extends Phaser.Scene {
   debugFullView = false; // New debug flag for full arena view
   wellGfx!: Phaser.GameObjects.Graphics;
   lastWellUpdateTime = 0; // Track time for client-side planet movement prediction
+  
+  // Radar upgrade tracking for zoom functionality
+  radarLevel = 0;
 
   // Planet sprite management
   planetSprites = new Map<string, Phaser.GameObjects.Image>();
@@ -88,6 +91,15 @@ export default class GameScene extends Phaser.Scene {
 
   constructor() {
     super("Game");
+  }
+
+  // Calculate camera zoom based on radar level
+  updateCameraZoom() {
+    if (this.debugFullView) return; // Don't interfere with debug view
+    const baseZoom = 0.9; // Base zoom level
+    const zoomOutPerLevel = 0.05; // How much to zoom out per radar level
+    const calculatedZoom = baseZoom - (this.radarLevel * zoomOutPerLevel);
+    this.cameras.main.setZoom(calculatedZoom);
   }
 
   preload() {
@@ -147,6 +159,7 @@ export default class GameScene extends Phaser.Scene {
     this.pickCurr = new Map();
     this.pickAlpha = 1;
     this.ships = new Map();
+    this.radarLevel = 0; // Reset radar level for new game
     this.planetSprites.forEach(s => s.destroy());
     this.planetSprites = new Map();
 
@@ -197,7 +210,7 @@ export default class GameScene extends Phaser.Scene {
     this.boundsGfx = this.add.graphics().setDepth(7);
 
     // Set default camera zoom for better visibility
-    this.cameras.main.setZoom(0.9); // Zoom out slightly for better field of view
+    this.updateCameraZoom(); // Use radar-based zoom calculation
 
     // Create fire animation
     if (!this.anims.exists('fire_thruster')) {
@@ -235,8 +248,8 @@ export default class GameScene extends Phaser.Scene {
           this.cameras.main.centerOn(0, 0);
         }
       } else {
-        // Reset camera to normal view - center on screen center with default zoom
-        this.cameras.main.setZoom(0.9); // Use default zoom level
+        // Reset camera to normal view - center on screen center with radar-based zoom
+        this.updateCameraZoom(); // Use radar-based zoom calculation
         this.cameras.main.centerOn(this.scale.width / 2, this.scale.height / 2);
       }
     });
@@ -367,6 +380,11 @@ export default class GameScene extends Phaser.Scene {
             const you = this.interp.get(youId);
             if (you) {
               Object.assign(you, e.updated);
+              // Update radar level and camera zoom
+              if (updated.radarLevel !== undefined) {
+                this.radarLevel = updated.radarLevel;
+                this.updateCameraZoom();
+              }
               // Immediately refresh HUD powerups panel from event data
               this.hud.setPowerups({ ...you, powerupLevels: updated.powerupLevels });
             }
@@ -447,6 +465,21 @@ export default class GameScene extends Phaser.Scene {
     if (typeof (you as any).score === 'number') this.lastScore = (you as any).score;
     if (typeof (you as any).level === 'number') this.lastLevel = (you as any).level;
 
+    // Update radar level from powerupLevels if available
+    if ((you as any).powerupLevels?.Radar !== undefined) {
+      const newRadarLevel = (you as any).powerupLevels.Radar;
+      if (this.radarLevel !== newRadarLevel) {
+        this.radarLevel = newRadarLevel;
+        this.updateCameraZoom();
+      }
+    } else if ((you as any).hp === 0 || (you as any).hp === undefined) {
+      // Reset radar level when dead (before respawn)
+      if (this.radarLevel !== 0) {
+        this.radarLevel = 0;
+        this.updateCameraZoom();
+      }
+    }
+
     // Bullets: ensure sprites now (placement each frame from interpolated entities)
     const bulletIds = new Set<string>();
     for (const e of s.entities) {
@@ -497,6 +530,11 @@ export default class GameScene extends Phaser.Scene {
         ship.destroy();
         this.ships.delete(id);
       }
+    }
+
+    // Update HUD with current powerup levels
+    if ((you as any).powerupLevels) {
+      this.hud.setPowerups({ ...you, powerupLevels: (you as any).powerupLevels });
     }
   }
 

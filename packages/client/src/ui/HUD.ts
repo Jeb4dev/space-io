@@ -86,7 +86,7 @@ export class HUD {
     const container = this.powerupsPanel.querySelector('.powerups-list') as HTMLDivElement;
     if (!container) return;
 
-    const families = ["Hull", "Damage", "Engine", "FireRate", "Magnet", "Shield"] as const;
+    const families = ["Hull", "Damage", "Engine", "FireRate", "Magnet", "Radar"] as const;
 
     // Prefer explicit powerupLevels from server; else derive (0-based levels)
     const serverLevels = stats.powerupLevels as Record<string, number> | undefined;
@@ -133,7 +133,7 @@ export class HUD {
       { name: "Engine", level: Math.round((accel - baseAccel) / 80) },
       { name: "FireRate", level: Math.round((baseFireRate - fireCooldownMs) / 25) },
       { name: "Magnet", level: Math.round((magnetRadius - baseMagnet) / 30) },
-      { name: "Shield", level: Math.round(shield / 10) },
+      { name: "Radar", level: Math.round(shield / 10) },
     ];
     return raw.map(r => ({ ...r, level: Math.max(0, Math.min(5, r.level)) }));
   }
