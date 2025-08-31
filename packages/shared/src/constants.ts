@@ -36,7 +36,7 @@ export const ALT_FIRE = {
 
 export const PICKUPS = {
   targetCount: 80,
-  xpValueRange: [5, 20],
+  xpValueRange: [10, 40],
   hpOrbChance: 0.08,
   hpOrbValue: 25,
   magnetBaseRadius: 100,
