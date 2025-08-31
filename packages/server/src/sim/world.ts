@@ -45,7 +45,7 @@ export type Player = {
     Engine: number;
     FireRate: number;
     Magnet: number;
-    Shield: number;
+    Radar: number;
   };
   inputQueue: Array<{
     seq: number;

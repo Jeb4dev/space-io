@@ -8,7 +8,7 @@ export type PickupType = "xp" | "hp";
 
 export type AltFireType = "railgun" | "spread";
 
-export type PowerupFamily = "Hull" | "Damage" | "Engine" | "FireRate" | "Magnet" | "Shield";
+export type PowerupFamily = "Hull" | "Damage" | "Engine" | "FireRate" | "Magnet" | "Radar";
 
 export type PowerupChoice = {
   family: PowerupFamily | "AltFire";
@@ -28,7 +28,8 @@ export type PlayerStats = {
   maxSpeed: number;
   fireCooldownMs: number;
   magnetRadius: number;
-  shield: number; // simple flat extra hp/regen placeholder
+  shield: number; // simple flat extra hp/regen placeholder (kept for backward compatibility with radar)
+  radarLevel?: number; // radar upgrade level for zoom-out functionality
   altFire?: AltFireType;
 };
 

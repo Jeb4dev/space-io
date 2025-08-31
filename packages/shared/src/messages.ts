@@ -64,7 +64,7 @@ export const ServerSnapshotSchema = z.object({
             Engine: z.number(),
             FireRate: z.number(),
             Magnet: z.number(),
-            Shield: z.number(),
+            Radar: z.number(),
         })
         .optional(),
       maxSpeed: z.number().optional(),
@@ -123,7 +123,7 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
     choices: z.array(
       z.object({
         family: z.union([
-          z.enum(["Hull", "Damage", "Engine", "FireRate", "Magnet", "Shield"]),
+          z.enum(["Hull", "Damage", "Engine", "FireRate", "Magnet", "Radar"]),
           z.literal("AltFire"),
         ]),
         tier: z.number().int().min(1).max(5).optional(),
@@ -153,7 +153,7 @@ export const ServerEventSchema = z.discriminatedUnion("type", [
         Engine: z.number(),
         FireRate: z.number(),
         Magnet: z.number(),
-        Shield: z.number(),
+        Radar: z.number(),
       }).optional(),
     }),
   }),
@@ -163,7 +163,7 @@ export type ServerEvent = z.infer<typeof ServerEventSchema>;
 export const LevelChoiceSchema = z.object({
   chosen: z.object({
     family: z.union([
-      z.enum(["Hull", "Damage", "Engine", "FireRate", "Magnet", "Shield"]),
+      z.enum(["Hull", "Damage", "Engine", "FireRate", "Magnet", "Radar"]),
       z.literal("AltFire"),
     ]),
     tier: z.number().int().min(1).max(5).optional(),

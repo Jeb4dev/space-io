@@ -70,7 +70,7 @@ export class LevelUpModal {
         { family: "Engine" as const, currentLevel: 1, desc: "Increases acceleration" },
         { family: "FireRate" as const, currentLevel: 1, desc: "Decreases firing cooldown" },
         { family: "Magnet" as const, currentLevel: 1, desc: "Increases pickup magnet radius" },
-        { family: "Shield" as const, currentLevel: 1, desc: "Provides extra protection" },
+        { family: "Radar" as const, currentLevel: 1, desc: "Provides extra protection" },
       ];
     }
 
@@ -95,7 +95,7 @@ export class LevelUpModal {
     const engineLevel = Math.max(1, Math.min(5, Math.round((accel - baseAccel) / 80) + 1)); // Server uses +80
     const fireRateLevel = Math.max(1, Math.min(5, Math.round((baseFireRate - fireCooldownMs) / 25) + 1)); // Server uses -25
     const magnetLevel = Math.max(1, Math.min(5, Math.round((magnetRadius - baseMagnet) / 30) + 1)); // Server uses +30
-    const shieldLevel = Math.max(1, Math.min(5, Math.round(shield / 10) + 1));
+    const radarLevel = Math.max(1, Math.min(5, Math.round(shield / 10) + 1));
 
     return [
       {
@@ -124,9 +124,9 @@ export class LevelUpModal {
         desc: `+30 pickup radius (Current: ${magnetRadius})` // Updated to match server
       },
       {
-        family: "Shield" as const,
-        currentLevel: shieldLevel,
-        desc: `+10 shield points (Current: ${shield})`
+        family: "Radar" as const,
+        currentLevel: radarLevel,
+        desc: `+10 shield & zoom out (Current: ${shield})`
       },
     ].filter(option => option.currentLevel < 5); // Only show upgradeable powerups
   }

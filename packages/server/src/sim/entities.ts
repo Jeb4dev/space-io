@@ -47,7 +47,7 @@ export const addPlayer = (
       Engine: 0,
       FireRate: 0,
       Magnet: 0,
-      Shield: 0,
+      Radar: 0,
     },
   };
   world.players.set(id, p);
@@ -197,9 +197,9 @@ export const applyLevelChoice = (
       p.powerupLevels.Magnet++;
       p.magnetRadius += 30;
     }
-  } else if (choice.family === "Shield" && choice.tier) {
-    if (p.powerupLevels.Shield < 5) {
-      p.powerupLevels.Shield++;
+  } else if (choice.family === "Radar" && choice.tier) {
+    if (p.powerupLevels.Radar < 5) {
+      p.powerupLevels.Radar++;
       p.shield += 10;
       p.hp = Math.min(p.maxHp + p.shield, p.hp + 10);
     }
@@ -220,6 +220,7 @@ export const applyLevelChoice = (
       fireCooldownMs: p.fireCooldownMs,
       magnetRadius: p.magnetRadius,
       shield: p.shield,
+      radarLevel: p.powerupLevels.Radar,
       altFire: p.altFire,
       powerupLevels: p.powerupLevels,
     },
@@ -283,13 +284,13 @@ const rollChoices = (p: Player): PowerupChoice[] => {
     });
   }
 
-  if (p.powerupLevels.Shield < 5) {
-    const nextLevel = p.powerupLevels.Shield + 1;
+  if (p.powerupLevels.Radar < 5) {
+    const nextLevel = p.powerupLevels.Radar + 1;
     pool.push({
-      family: "Shield" as const,
+      family: "Radar" as const,
       tier: nextLevel,
-      label: `Shield Lv${nextLevel}`,
-      desc: "+10 Shield/HP",
+      label: `Radar Lv${nextLevel}`,
+      desc: "+10 Shield & Zoom Out",
     });
   }
 
