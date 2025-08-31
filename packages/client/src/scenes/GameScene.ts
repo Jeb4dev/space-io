@@ -304,7 +304,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     // Start connecting (resolves on 'welcome'), register handlers, then join, then await welcome
-    const rawUrl = (import.meta.env as any).VITE_SERVER_URL || window.location.origin;
+    const rawUrl = (import.meta.env as any).VITE_SERVER_URL || "http://localhost:8008";
     let serverUrl: string = rawUrl;
     // If page is https but URL is http, upgrade to avoid mixed content block
     if (window.location.protocol === 'https:' && rawUrl.startsWith('http://')) {
