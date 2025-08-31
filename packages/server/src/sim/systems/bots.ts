@@ -13,7 +13,7 @@ const BOT_NAMES = [
   "Foxtrot AI",
   "Golf Drone",
   "Hotel Unit",
-  "India Bot",
+  "Iridium Bot",
   "Juliet AI",
 ];
 
