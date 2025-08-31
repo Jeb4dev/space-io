@@ -1,4 +1,5 @@
 import type { World, Player } from "../world.js";
+import { spawnDeathPickups } from "./deathDrops.js";
 
 export const handlePlayerCollisions = (world: World, dt: number): void => {
   const players = Array.from(world.players.values());
@@ -89,6 +90,7 @@ export const handlePlayerCollisions = (world: World, dt: number): void => {
               x: p1.x,
               y: p1.y,
             });
+            spawnDeathPickups(world, p1);
           }
           if (p2.hp <= 0) {
             p2.deadUntil = now + 500;
@@ -99,6 +101,7 @@ export const handlePlayerCollisions = (world: World, dt: number): void => {
               x: p2.x,
               y: p2.y,
             });
+            spawnDeathPickups(world, p2);
           }
 
           // Brief invulnerability to prevent damage spam

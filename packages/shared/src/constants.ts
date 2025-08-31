@@ -47,7 +47,7 @@ export const GRAVITY = {
   maxPull: 300,
   planetScrollSpeed: 50,
   wells: [
-    { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 400, texture: "EARTH" },
+    { id: "planetA", x: 1800, y: 1200, mass: 2e6, radius: 120, influenceRadius: 600, type: "planet" as const, maxPull: 280, texture: "EARTH" },
     {
       id: "sunA",
       x: 3000,
@@ -56,7 +56,7 @@ export const GRAVITY = {
       radius: 200,
       influenceRadius: 800,
       type: "sun" as const,
-      maxPull: 600,
+      maxPull: 450,
       texture: "JUPITER"
     },
     {
@@ -67,7 +67,7 @@ export const GRAVITY = {
       radius: 110,
       influenceRadius: 500,
       type: "planet" as const,
-      maxPull: 350,
+      maxPull: 250,
       texture: "MARS"
     },
     {
@@ -78,7 +78,7 @@ export const GRAVITY = {
       radius: 80,
       influenceRadius: 150,
       type: "planet" as const,
-      maxPull: 50,
+      maxPull: 35,
       texture: "NEPTUNUS"
     },
     {
@@ -89,7 +89,7 @@ export const GRAVITY = {
       radius: 80,
       influenceRadius: 150,
       type: "planet" as const,
-      maxPull: 50,
+      maxPull: 35,
       texture: "SATURNUS"
     },
     {
@@ -100,7 +100,7 @@ export const GRAVITY = {
       radius: 80,
       influenceRadius: 150,
       type: "planet" as const,
-      maxPull: 50,
+      maxPull: 35,
       texture: "VENUS"
     },
   ],

@@ -17,7 +17,6 @@ export class NamePrompt {
     modal.innerHTML = `
       <div class="start-header">
         <h1 class="start-title">Space IO</h1>
-        <p class="start-tagline">Fast. Minimal. Competitive Asteroid Arena.</p>
       </div>
       <form class="name-form" autocomplete="off">
         <label class="input-group">
