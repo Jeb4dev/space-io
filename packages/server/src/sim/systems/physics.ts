@@ -82,22 +82,32 @@ export const integrate = (world: World, dt: number) => {
   for (const p of world.players.values()) {
     p.x += p.vx * dt;
     p.y += p.vy * dt;
-    // world bounds
+    // World edge bounce
+    const bounceRestitution = 0.9; // energy retained (1 = perfect, <1 loses speed)
+    const minBounceSpeed = 140; // ensure a noticeable kick away
+    // Left
     if (p.x < p.r) {
       p.x = p.r;
-      p.vx = 0;
+      const speed = Math.max(minBounceSpeed, Math.abs(p.vx) * bounceRestitution);
+      p.vx = speed; // push right
     }
-    if (p.y < p.r) {
-      p.y = p.r;
-      p.vy = 0;
-    }
+    // Right
     if (p.x > world.w - p.r) {
       p.x = world.w - p.r;
-      p.vx = 0;
+      const speed = Math.max(minBounceSpeed, Math.abs(p.vx) * bounceRestitution);
+      p.vx = -speed; // push left
     }
+    // Top
+    if (p.y < p.r) {
+      p.y = p.r;
+      const speed = Math.max(minBounceSpeed, Math.abs(p.vy) * bounceRestitution);
+      p.vy = speed; // push down
+    }
+    // Bottom
     if (p.y > world.h - p.r) {
       p.y = world.h - p.r;
-      p.vy = 0;
+      const speed = Math.max(minBounceSpeed, Math.abs(p.vy) * bounceRestitution);
+      p.vy = -speed; // push up
     }
   }
   for (const b of world.bullets.values()) {

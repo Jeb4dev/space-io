@@ -56,7 +56,7 @@ export const GRAVITY = {
       radius: 200,
       influenceRadius: 800,
       type: "sun" as const,
-      maxPull: 450,
+      maxPull: 350,
       texture: "JUPITER"
     },
     {
