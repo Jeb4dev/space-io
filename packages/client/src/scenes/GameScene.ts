@@ -67,6 +67,7 @@ export default class GameScene extends Phaser.Scene {
   aim = 0;
   thrust = { x: 0, y: 0 };
   fireHeld = false;
+  altFireHeld = false;
 
   // camera anchor (interpolated you)
   camX = 0;
@@ -263,13 +264,23 @@ export default class GameScene extends Phaser.Scene {
     });
 
     // Mobile thrust: hold touch to thrust; release to stop
-    this.input.on("pointerdown", () => {
+    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       if (!isDesktop) this.isThrusting = true;
+      
+      // Left mouse button for alternative fire (desktop only)
+      if (isDesktop && pointer.leftButtonDown()) {
+        this.altFireHeld = true;
+      }
     });
-    this.input.on("pointerup", () => {
+    this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => {
       if (!isDesktop) {
         this.isThrusting = false;
         this.thrust = { x: 0, y: 0 };
+      }
+      
+      // Release alternative fire when left mouse button is released
+      if (isDesktop && pointer.leftButtonReleased()) {
+        this.altFireHeld = false;
       }
     });
     // We compute aim/thrust every frame in update() now.
@@ -484,7 +495,7 @@ export default class GameScene extends Phaser.Scene {
 
     // If mouse is near the ship (center), stop acceleration
     const mouseDist = Math.hypot(pointer.worldX - cx, pointer.worldY - cy);
-    const stopRadius = 80; // px, tweak as needed
+    const stopRadius = 120; // px, increased from 80 for bigger deadzone
 
     if ((this.alwaysThrust || this.isThrusting) && mouseDist > stopRadius) {
       this.thrust = { x: Math.cos(this.aim), y: Math.sin(this.aim) };
@@ -499,9 +510,9 @@ export default class GameScene extends Phaser.Scene {
       myShip.setThrusterVisible(isThrusting);
     }
 
-    // Fire: Spacebar or mobile FIRE button
+    // Fire: Spacebar, mobile FIRE button, or left mouse button
     const spaceDown = this.space?.isDown ?? false;
-    this.fireHeld = spaceDown || this.touchFireHeld;
+    this.fireHeld = spaceDown || this.touchFireHeld || this.altFireHeld;
 
     // Send input at ~40 Hz
     const dtMs = delta;
