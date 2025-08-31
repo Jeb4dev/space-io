@@ -111,6 +111,12 @@ export default class GameScene extends Phaser.Scene {
     this.load.image("raketti/weapon1.png", new URL("../assets/raketti/weapon1.png", import.meta.url).toString());
     this.load.image("raketti/weapon2.png", new URL("../assets/raketti/weapon2.png", import.meta.url).toString());
 
+    // Preload fire animation textures
+    this.load.image("fire/fire0.png", new URL("../assets/fire/fire0.png", import.meta.url).toString());
+    this.load.image("fire/fire1.png", new URL("../assets/fire/fire1.png", import.meta.url).toString());
+    this.load.image("fire/fire2.png", new URL("../assets/fire/fire2.png", import.meta.url).toString());
+    this.load.image("fire/fire3.png", new URL("../assets/fire/fire3.png", import.meta.url).toString());
+
     // Preload heart image for HP pickups
     this.load.image("heart", new URL("../assets/muut/heart.png", import.meta.url).toString());
     // Preload planet assets
@@ -187,6 +193,21 @@ export default class GameScene extends Phaser.Scene {
 
     this.wellGfx = this.add.graphics().setDepth(8);
     this.boundsGfx = this.add.graphics().setDepth(7);
+
+    // Create fire animation
+    if (!this.anims.exists('fire_thruster')) {
+      this.anims.create({
+        key: 'fire_thruster',
+        frames: [
+          { key: 'fire/fire0.png' },
+          { key: 'fire/fire1.png' },
+          { key: 'fire/fire2.png' },
+          { key: 'fire/fire3.png' }
+        ],
+        frameRate: 12,
+        repeat: -1
+      });
+    }
 
     // Debug key "I" to toggle full arena view
     this.input.keyboard?.on("keydown-I", () => {
@@ -471,6 +492,13 @@ export default class GameScene extends Phaser.Scene {
       this.thrust = { x: 0, y: 0 };
     }
 
+    // Control thruster visibility based on thrust and mouse distance
+    const myShip = this.ships.get(this.net.youId!);
+    if (myShip) {
+      const isThrusting = (this.thrust.x !== 0 || this.thrust.y !== 0) && mouseDist > stopRadius;
+      myShip.setThrusterVisible(isThrusting);
+    }
+
     // Fire: Spacebar or mobile FIRE button
     const spaceDown = this.space?.isDown ?? false;
     this.fireHeld = spaceDown || this.touchFireHeld;
@@ -516,7 +544,13 @@ export default class GameScene extends Phaser.Scene {
 
         // Face their movement direction (guard tiny velocities)
         const spd = Math.hypot(e.vx, e.vy);
-        if (spd > 0.001) ship.setRotation(Math.atan2(e.vy, e.vx));
+        if (spd > 0.001) {
+          ship.setRotation(Math.atan2(e.vy, e.vx));
+          // Show thruster when moving fast enough
+          ship.setThrusterVisible(spd > 50); // Show thruster if speed > 50 units
+        } else {
+          ship.setThrusterVisible(false);
+        }
       }
 
       // Your ship stays centered and faces aim
@@ -740,6 +774,9 @@ export default class GameScene extends Phaser.Scene {
   makeShipDeathEffect(victimId: string) {
     const ship = this.ships.get(victimId);
     if (!ship) return;
+
+    // Hide thruster immediately on death
+    ship.setThrusterVisible(false);
 
     // Create a blinking/fading effect
     const shipParts = [ship.body, ship.wings, ship.window, ship.point, ship.weapon, ship.ring];
