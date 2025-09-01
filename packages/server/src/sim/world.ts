@@ -1,4 +1,4 @@
-import { WORLD, GRAVITY, PICKUPS } from "@shared/constants.js";
+import { WORLD, GRAVITY } from "@shared/constants.js";
 import type { WellState } from "@shared/types.js";
 import type { Server } from "socket.io";
 import { rndRange } from "@shared/math.js";
@@ -12,6 +12,7 @@ export type World = {
   bullets: Map<string, Bullet>;
   pickups: Map<string, Pickup>;
   io?: Server; // assigned in loop
+  awaitingFirstHuman: boolean; // paused state until a human connects
 };
 
 export type Player = {
@@ -80,10 +81,10 @@ export type Pickup = {
   y: number;
   r: number;
   value: number;
+  createdAt: number; // ms timestamp when spawned
 };
 
 export const createWorld = (): World => {
-  // Initialize wells from GRAVITY.wells, handling empty array case
   const wells: WellState[] = GRAVITY.wells.map((w) => ({ ...w }));
   return {
     w: WORLD.w,
@@ -93,6 +94,7 @@ export const createWorld = (): World => {
     players: new Map(),
     bullets: new Map(),
     pickups: new Map(),
+    awaitingFirstHuman: true,
   };
 };
 
@@ -134,4 +136,13 @@ export const randSafeSpawn = (world: World) => {
 
   // Fallback: spawn in center if no safe position found after max attempts
   return { x: world.w / 2, y: world.h / 2 };
+};
+
+export const resetWorld = (world: World) => {
+  world.players.clear();
+  world.bullets.clear();
+  world.pickups.clear();
+  world.wells = GRAVITY.wells.map((w) => ({ ...w }));
+  world.tick = 0;
+  world.awaitingFirstHuman = false; // unpause once first human joins
 };

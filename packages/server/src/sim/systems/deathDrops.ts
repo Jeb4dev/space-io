@@ -35,6 +35,7 @@ export function spawnDeathPickups(world: World, player: Player) {
       y,
       r: 10,
       value,
+      createdAt: Date.now(),
     };
     world.pickups.set(id, pu);
   }

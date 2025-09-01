@@ -9,7 +9,6 @@ import { getScoreboard } from "./systems/scoreboard.js";
 import { spawnBot, updateBots, cleanupBots, getBotCount } from "./systems/bots.js";
 import { updatePlanetMovement } from "./systems/planetMovement.js";
 import { handlePlayerCollisions } from "./systems/playerCollisions.js";
-import { BULLET } from "@shared/constants.js";
 import { performance } from "perf_hooks";
 
 // Basic performance metrics (can be expanded later)
@@ -68,6 +67,7 @@ export const startLoop = (io: Server, world: World) => {
 };
 
 function doSimTick(io: Server, world: World, dt: number, nowMs: number) {
+  if (world.awaitingFirstHuman) return; // pause sim until a real player joins
   const now = nowMs; // keep original variable naming semantics for existing code
   world.tick++;
 

@@ -165,3 +165,7 @@ export const cleanupBots = (world: World): void => {
     }
   }
 };
+
+export const clearBots = (): void => {
+  bots.clear();
+};

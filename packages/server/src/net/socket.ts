@@ -17,7 +17,8 @@ import {
 } from "../sim/entities.js";
 import { config } from "../config.js";
 import { WORLD } from "@shared/constants.js";
-import { randSafeSpawn } from "../sim/world.js";
+import { randSafeSpawn, resetWorld } from "../sim/world.js";
+import { clearBots } from "../sim/systems/bots.js";
 import { filterName } from "../util/nameFilter.js";
 
 export const setupSocket = (io: Server, world: World) => {
@@ -27,19 +28,20 @@ export const setupSocket = (io: Server, world: World) => {
       return;
     }
     const playerId = nanoid();
-    const spawnPos = randSafeSpawn(world);
-    const player = addPlayer(
-      world,
-      playerId,
-      spawnPos,
-      socket.id,
-    );
+    let playerAdded = false;
 
     socket.on("join", (raw) => {
+      // If this is the first human after an idle period, reset the world fresh
+      if (world.awaitingFirstHuman) {
+        resetWorld(world); // clears entities & unpauses
+        clearBots();
+      }
+      const spawnPos = randSafeSpawn(world);
+      addPlayer(world, playerId, spawnPos, socket.id);
+      playerAdded = true;
       const parsed = ClientJoinSchema.safeParse(raw);
       const safeName = filterName(parsed.success ? parsed.data.name : "Anon");
       setPlayerName(world, playerId, safeName);
-
       const welcome: ServerWelcome = {
         youId: playerId,
         tickRate: config.tickHz,
@@ -50,6 +52,7 @@ export const setupSocket = (io: Server, world: World) => {
     });
 
     socket.on("input", (raw) => {
+      if (!playerAdded) return; // ignore inputs before join
       const parsed = ClientInputSchema.safeParse(raw);
       if (!parsed.success) return;
       if (parsed.data.id !== playerId) return;
@@ -75,7 +78,13 @@ export const setupSocket = (io: Server, world: World) => {
     });
 
     socket.on("disconnect", () => {
-      removePlayer(world, playerId);
+      if (playerAdded) removePlayer(world, playerId);
+      // If no more humans connected, pause world until next join
+      const anyHuman = Array.from(world.players.values()).some(p => p.socketId);
+      if (!anyHuman) {
+        world.awaitingFirstHuman = true;
+        clearBots();
+      }
     });
   });
 };

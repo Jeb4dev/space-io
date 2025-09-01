@@ -40,6 +40,10 @@ export const PICKUPS = {
   hpOrbChance: 0.08,
   hpOrbValue: 100,
   magnetBaseRadius: 100,
+  // Lifespan (ms) after which pickups are auto-despawned to avoid stale clutter
+  lifespanMs: 5 * 60 * 1000, // 5 minutes
+  // Absolute safety cap (older pickups trimmed first if exceeded)
+  maxCount: 220,
 };
 
 export const GRAVITY = {

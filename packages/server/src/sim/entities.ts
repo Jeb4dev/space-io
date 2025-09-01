@@ -447,6 +447,7 @@ export const spawnPickupsIfNeeded = (world: World) => {
       y: rndRange(40, WORLD.h - 40),
       r: 10,
       value,
+      createdAt: Date.now(),
     };
     world.pickups.set(id, p);
   }
