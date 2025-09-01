@@ -131,7 +131,7 @@ export default class Ship {
     
     // Body texture based on HP - changes at level 2 (120HP), then level 5 (140HP)
     // Level 1: 100HP (texture 0), Level 2+: 120HP+ (texture 1), Level 5+: 140HP+ (texture 2)
-    const bodyLevel = maxHp <= 100 ? 0 : maxHp < 140 ? 1 : 2;
+    const bodyLevel = maxHp <= 125 ? 0 : maxHp < 140 ? 1 : 2;
     this.body.setTexture(`raketti/body${bodyLevel}.png`);
     
     // Weapon texture based on fire cooldown - changes at level 2, then level 5
